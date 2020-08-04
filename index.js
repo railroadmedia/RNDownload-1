@@ -1,4 +1,4 @@
 import Download from './src/Download';
-import DownloadResource, { downloadRes } from './src/DownloadResource';
+import DownloadResources, { downloadRes } from './src/DownloadResources';
 
-export { Download, DownloadResource, downloadRes };
+export { Download, DownloadResources, downloadRes };
