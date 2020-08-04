@@ -14,7 +14,7 @@ import {
 
 import RNFetchBlob from 'rn-fetch-blob';
 
-import { x, link, zip, mp3, mp4, pdf } from '../../img/svgs';
+import { x, link, zip, mp3, mp4, pdf } from './img/svgs';
 
 const getTypeByExtension = path => {
   if (path === 'mp3' || path.indexOf('mp3') > 0) return 'audio/mp3';

@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Alert,
+  Platform,
   Animated,
   PixelRatio,
   Dimensions,
@@ -17,15 +18,10 @@ import RNBackgroundDownloader from 'react-native-background-downloader';
 import { downloadRes } from './DownloadResources';
 import AnimatedCustomAlert from './AnimatedCustomAlert';
 
-import reducer from '../../services/reducer';
-import dldService from '../../services/download.service';
-import commonService from '../../services/common.service';
-import downloadService from '../../services/download.service';
-
-import { DRUMEO_BLUE, globalStyles } from '../../Styles';
-import { download, trash, stopDownload } from '../../img/svgs';
+import { download, trash, stopDownload } from './img/svgs';
 
 let task;
+let isiOS = Platform.OS == 'ios';
 const windowDims = Dimensions.get('window'),
   windowWidth = windowDims.width,
   halfGreaterWDim =
@@ -54,7 +50,7 @@ export default class Download extends React.Component {
     let offlineContent;
     try {
       offlineContent = await RNFetchBlob.fs.readFile(
-        `${commonService.offPath}/offlineContent`,
+        `${this.props.offPath}/offlineContent`,
         'utf8'
       );
     } catch (e) {}
@@ -117,12 +113,129 @@ export default class Download extends React.Component {
     );
   }
 
+  dldReducer = download => {
+    delete download.sort;
+    delete download.brand;
+    delete download.is_new;
+    delete download.started;
+    delete download.child_id;
+    delete download.language;
+    delete download.permissions;
+    delete download.archived_on;
+    delete download.current_lesson;
+    delete download.user_playlists;
+    delete download.live_event_end_time;
+    delete download.live_event_start_time;
+    delete download.published_on_in_timezone;
+    delete download.live_event_end_time_in_timezone;
+    delete download.live_event_start_time_in_timezone;
+
+    if (download.lessons) {
+      download.lessons.map(l => {
+        this.dldReducer(l);
+      });
+    }
+
+    if (download.related_lessons) {
+      download.related_lessons.map(rl => {
+        this.dldReducer(rl);
+      });
+    }
+
+    if (download.assignments) {
+      download.assignments.map(a => {
+        this.dldReducer(a);
+      });
+    }
+
+    let usefulFields = [];
+    download.fields.map(f => {
+      if (f.key !== 'tag') usefulFields.push(f);
+    });
+    download.fields = usefulFields;
+
+    let usefulData = [];
+    download.data.map(d => {
+      if (
+        d.key === 'thumbnail_url' ||
+        d.key === 'description' ||
+        d.key === 'sheet_music_image_url' ||
+        d.key.indexOf('mp3_') >= 0
+      )
+        usefulData.push(d);
+    });
+    download.data = usefulData;
+
+    return download;
+  };
+
+  getAssignWHRatio = async assignments => {
+    let assignPromises = [];
+    assignments.map(a => {
+      let svgs = [],
+        nsvgs = [];
+      a.data.map(d => {
+        if (d.key === 'sheet_music_image_url' && d.value.indexOf('.pdf') > -1)
+          return;
+        if (d.key === 'sheet_music_image_url' && d.value.indexOf('.svg') > -1)
+          return svgs.push(d);
+        if (d.key === 'sheet_music_image_url' && d.value.indexOf('.svg') < 0)
+          return nsvgs.push(d);
+      });
+      if (svgs.length) {
+        assignPromises.push(
+          new Promise(async (res, rej) => {
+            let vbPromises = [];
+            svgs.map(s => vbPromises.push(fetch(s.value)));
+
+            (await Promise.all(vbPromises)).map(async (vbResp, i) => {
+              let vbArr;
+              try {
+                vbArr = vbResp._bodyText
+                  .split('viewBox="')[1]
+                  .split('" ')[0]
+                  .split(' ');
+              } catch (e) {
+                vbArr = (await vbResp.text())
+                  .split('viewBox="')[1]
+                  .split('" ')[0]
+                  .split(' ');
+              }
+              svgs[i].whRatio = vbArr[2] / vbArr[3];
+              i === svgs.length - 1 && res();
+            });
+          })
+        );
+      }
+      if (nsvgs.length) {
+        nsvgs.map((ns, i) => {
+          assignPromises.push(
+            new Promise((res, rej) => {
+              Image.getSize(
+                ns.value,
+                (w, h) => {
+                  ns.whRatio = w / h;
+                  res();
+                },
+                e => {
+                  ns.whRatio = 1;
+                  res();
+                }
+              );
+            })
+          );
+        });
+      }
+    });
+    await Promise.all(assignPromises);
+  };
+
   percentageListener(percentage) {
     if (this._isMounted && percentage.id === this.props.entity.id) {
       if (percentage.val === undefined && this.props.onDone)
         this.props.onDone();
       if (percentage.val !== undefined) this.animateProgress(percentage.val);
-      else if (percentage.val === undefined && downloadService.deletedDld)
+      else if (percentage.val === undefined && this.deletedDld)
         this.setState({ dlding: false, entityExists: false });
       else if (this._isMounted)
         this.setState({ dlding: false, entityExists: true });
@@ -143,11 +256,10 @@ export default class Download extends React.Component {
           entity.data.filter(d => d.key.indexOf('_click_url') > -1)
         )
       );
-      if (entity.assignments)
-        await dldService.getAssignWHRatio(entity.assignments);
+      if (entity.assignments) await this.getAssignWHRatio(entity.assignments);
       else if (entity.lessons)
         entity.lessons.map(async l => {
-          if (l.assignments) await dldService.getAssignWHRatio(l.assignments);
+          if (l.assignments) await this.getAssignWHRatio(l.assignments);
         });
     }
     try {
@@ -186,12 +298,12 @@ export default class Download extends React.Component {
       }
     } catch (e) {}
     entity.urls = urls;
-    entity = reducer.reduceDownload(entity);
+    entity = this.dldReducer(entity);
     return entity;
   }
 
   async download() {
-    delete downloadService.deletedDld;
+    delete this.deletedDld;
     if (
       !this.props.entity.video_playback_endpoints &&
       !this.props.entity.lessons
@@ -210,7 +322,7 @@ export default class Download extends React.Component {
     } else {
       try {
         offlineContent = await RNFetchBlob.fs.readFile(
-          `${commonService.offPath}/offlineContent`,
+          `${this.props.offPath}/offlineContent`,
           'utf8'
         );
       } catch (e) {}
@@ -283,7 +395,7 @@ export default class Download extends React.Component {
       });
       try {
         await RNFetchBlob.fs.writeFile(
-          `${commonService.offPath}/offlineContent`,
+          `${this.props.offPath}/offlineContent`,
           JSON.stringify(offlineContent),
           'utf8'
         );
@@ -333,10 +445,10 @@ export default class Download extends React.Component {
     task = RNBackgroundDownloader.download({
       id: u.key,
       url: u.value,
-      destination: `${commonService.offPath}/${u.key}`
+      destination: `${this.props.offPath}/${u.key}`
     })
       .begin(async expectedBytes => {
-        let freeSpace = commonService.isiOS
+        let freeSpace = isiOS
           ? await RNFetchBlob.fs.df().free
           : await RNFetchBlob.fs.df().internal_free;
         if (freeSpace < expectedBytes) {
@@ -357,16 +469,16 @@ export default class Download extends React.Component {
             task.stop();
           } catch (e) {}
           this.delete(offlineContent, id);
-          delete downloadService.deletedDld;
+          delete this.deletedDld;
           return;
         }
       })
       .progress(async p => {
         clearTimeout(this.enforceLowStorageAction);
-        if (downloadService.deletedDld) {
+        if (this.deletedDld) {
           task.pause();
-          let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
-          delete downloadService.deletedDld;
+          let { ocAfterDelete, deletedId } = await this.deletedDld;
+          delete this.deletedDld;
           if (task.id.indexOf(deletedId) > -1) {
             try {
               task.stop();
@@ -396,7 +508,7 @@ export default class Download extends React.Component {
         this.progress(totalProgress, id);
 
         this.enforceLowStorageAction = setTimeout(async () => {
-          let freeSpace = commonService.isiOS
+          let freeSpace = isiOS
             ? await RNFetchBlob.fs.df().free
             : await RNFetchBlob.fs.df().internal_free;
           if (freeSpace < 500000000) {
@@ -418,15 +530,15 @@ export default class Download extends React.Component {
               task.stop();
             } catch (e) {}
             this.delete(offlineContent, id);
-            delete downloadService.deletedDld;
+            delete this.deletedDld;
             return;
           }
         }, 30000);
       })
       .done(async () => {
-        if (downloadService.deletedDld) {
-          let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
-          delete downloadService.deletedDld;
+        if (this.deletedDld) {
+          let { ocAfterDelete, deletedId } = await this.deletedDld;
+          delete this.deletedDld;
           if (task.id.indexOf(deletedId) > -1) {
             let firstDldingContentId;
             if (!firstDldingContentId || !firstDldingContentId.length) {
@@ -452,7 +564,7 @@ export default class Download extends React.Component {
 
         let newOfflineContent = JSON.parse(
           await RNFetchBlob.fs.readFile(
-            `${commonService.offPath}/offlineContent`,
+            `${this.props.offPath}/offlineContent`,
             'utf8'
           )
         );
@@ -491,7 +603,7 @@ export default class Download extends React.Component {
 
           try {
             await RNFetchBlob.fs.writeFile(
-              `${commonService.offPath}/offlineContent`,
+              `${this.props.offPath}/offlineContent`,
               JSON.stringify(newOfflineContent),
               'utf8'
             );
@@ -536,13 +648,13 @@ export default class Download extends React.Component {
               { cancelable: false }
             );
             this.delete(offlineContent, id);
-            delete downloadService.deletedDld;
+            delete this.deletedDld;
             return;
           }
         }
         try {
           await RNFetchBlob.fs.writeFile(
-            `${commonService.offPath}/offlineContent`,
+            `${this.props.offPath}/offlineContent`,
             JSON.stringify(newOfflineContent),
             'utf8'
           );
@@ -564,7 +676,7 @@ export default class Download extends React.Component {
             { cancelable: false }
           );
           this.delete(offlineContent, id);
-          delete downloadService.deletedDld;
+          delete this.deletedDld;
           return;
         }
       })
@@ -584,7 +696,7 @@ export default class Download extends React.Component {
           { cancelable: false }
         );
         this.delete(offlineContent, id);
-        delete downloadService.deletedDld;
+        delete this.deletedDld;
         return;
       });
   }
@@ -602,12 +714,12 @@ export default class Download extends React.Component {
       return;
     }
 
-    return (downloadService.deletedDld = new Promise(async resolve => {
+    return (this.deletedDld = new Promise(async resolve => {
       let dldedFiles = offlineContent[id].entity.dldedFiles;
       let dldingFiles = offlineContent[id].entity.dldingFiles;
       try {
         let oc = await RNFetchBlob.fs.readFile(
-          `${commonService.offPath}/offlineContent`,
+          `${this.props.offPath}/offlineContent`,
           'utf8'
         );
         dldedFiles = [...dldedFiles, oc[id].entity.dldedFiles];
@@ -616,11 +728,11 @@ export default class Download extends React.Component {
 
       delete offlineContent[id];
       try {
-        await RNFetchBlob.fs.unlink(`${commonService.offPath}/offlineContent`);
+        await RNFetchBlob.fs.unlink(`${this.props.offPath}/offlineContent`);
       } catch (e) {}
       try {
         await RNFetchBlob.fs.writeFile(
-          `${commonService.offPath}/offlineContent`,
+          `${this.props.offPath}/offlineContent`,
           JSON.stringify(offlineContent),
           'utf8'
         );
@@ -635,13 +747,13 @@ export default class Download extends React.Component {
       if (!keepFiles)
         dldedFiles.map(async df => {
           try {
-            await RNFetchBlob.fs.unlink(`${commonService.offPath}/${df}`);
+            await RNFetchBlob.fs.unlink(`${this.props.offPath}/${df}`);
           } catch (e) {}
         });
       if (!keepFiles && dldingFiles)
         dldingFiles.map(async df => {
           try {
-            await RNFetchBlob.fs.unlink(`${commonService.offPath}/${df}`);
+            await RNFetchBlob.fs.unlink(`${this.props.offPath}/${df}`);
           } catch (e) {}
         });
       try {
@@ -840,10 +952,10 @@ export default class Download extends React.Component {
       if (!val) {
         val = obj[ap];
       } else if (i === arrPath.length - 1) {
-        val[ap] = commonService.isiOS ? newVal : `file:///${newVal}`;
-        if (!commonService.isiOS && val[ap].indexOf('.svg') > -1)
+        val[ap] = isiOS ? newVal : `file:///${newVal}`;
+        if (!isiOS && val[ap].indexOf('.svg') > -1)
           val[ap] = `data:image/svg+xml;utf8,${await RNFetchBlob.fs.readFile(
-            val[ap].replace('file://', `file://${commonService.offPath}`)
+            val[ap].replace('file://', `file://${this.props.offPath}`)
           )}`;
       } else {
         if (ap.indexOf('{') > -1) {
@@ -871,15 +983,18 @@ export default class Download extends React.Component {
                   this.setState({ dldWidth: e.nativeEvent.layout.width });
               }}
             >
-              {stopDownload({ width: 25, height: 25, fill: DRUMEO_BLUE })}
+              {stopDownload({ width: 25, height: 25, fill: 'red' })}
 
               {!this.props.noText && (
                 <Text
-                  maxFontSizeMultiplier={commonService.maxFontMultiplier}
-                  style={[
-                    globalStyles.extraSmallText,
-                    { color: DRUMEO_BLUE, marginTop: 5 }
-                  ]}
+                  maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                  style={{
+                    color: 'red',
+                    fontSize: 10,
+                    marginTop: 5,
+                    color: '#ffffff',
+                    fontFamily: 'OpenSans'
+                  }}
                   onLayout={e => {
                     if (this._isMounted)
                       this.setState({ dldWidth: e.nativeEvent.layout.width });
@@ -899,7 +1014,7 @@ export default class Download extends React.Component {
                 <Animated.View
                   style={{
                     width: this.state.percentage,
-                    backgroundColor: DRUMEO_BLUE,
+                    backgroundColor: 'red',
                     flex: 1
                   }}
                 />
@@ -916,11 +1031,14 @@ export default class Download extends React.Component {
 
               {!this.props.noText && (
                 <Text
-                  maxFontSizeMultiplier={commonService.maxFontMultiplier}
-                  style={[
-                    globalStyles.extraSmallText,
-                    { color: this.props.textColor || 'white', marginTop: 5 }
-                  ]}
+                  maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                  style={{
+                    fontSize: 10,
+                    marginTop: 5,
+                    color: '#ffffff',
+                    fontFamily: 'OpenSans',
+                    color: this.props.textColor || 'white'
+                  }}
                 >
                   Downloaded
                 </Text>
@@ -937,14 +1055,14 @@ export default class Download extends React.Component {
 
               {!this.props.noText && (
                 <Text
-                  maxFontSizeMultiplier={commonService.maxFontMultiplier}
-                  style={[
-                    globalStyles.extraSmallText,
-                    {
-                      color: this.props.textColor || 'white',
-                      marginTop: 5
-                    }
-                  ]}
+                  maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                  style={{
+                    fontSize: 10,
+                    marginTop: 5,
+                    color: '#ffffff',
+                    fontFamily: 'OpenSans',
+                    color: this.props.textColor || 'white'
+                  }}
                 >
                   Download
                 </Text>
