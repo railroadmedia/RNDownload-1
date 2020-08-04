@@ -10,8 +10,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "react": "16.13.1",
-    "react-native": "0.63.2",
     "react-native-background-downloader": "git+https://github.com/railroadmedia/react-native-background-downloader.git",
     "react-native-svg": "^12.1.0",
     "rn-fetch-blob": "^0.12.0"
