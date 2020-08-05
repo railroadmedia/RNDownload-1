@@ -98,7 +98,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
               }}
             >
               <Text
-                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+                maxFontSizeMultiplier={this.props.maxFontMultiplier}
                 style={{
                   padding: 15,
                   fontSize: 15,
@@ -112,7 +112,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
             </TouchableOpacity>
             <TouchableOpacity testID='cancelBtn' onPress={() => this.toggle()}>
               <Text
-                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+                maxFontSizeMultiplier={this.props.maxFontMultiplier}
                 style={{
                   fontSize: 15,
                   marginTop: 10,
