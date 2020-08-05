@@ -102,9 +102,9 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 style={{
                   padding: 15,
                   fontSize: 15,
-                  color: '#ffffff',
                   textAlign: 'center',
-                  fontFamily: 'RobotoCondensed-Bold'
+                  fontFamily: 'RobotoCondensed-Bold',
+                  color: propStyle?.deleteTextColor || 'black'
                 }}
               >
                 DELETE
