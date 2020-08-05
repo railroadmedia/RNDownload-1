@@ -21,6 +21,7 @@ import AnimatedCustomAlert from './AnimatedCustomAlert';
 import { download, trash, stopDownload } from './img/svgs';
 
 let task;
+let offPath;
 let isiOS = Platform.OS == 'ios';
 const windowDims = Dimensions.get('window'),
   windowWidth = windowDims.width,
@@ -41,6 +42,10 @@ export default class Download extends React.Component {
 
   constructor(props) {
     super(props);
+    offPath =
+      props.offPath || isiOS
+        ? RNFetchBlob.fs.dirs.LibraryDir
+        : RNFetchBlob.fs.dirs.DocumentDir;
     this.progress = this.progress.bind(this);
     this.download = this.download.bind(this);
   }
@@ -50,7 +55,7 @@ export default class Download extends React.Component {
     let offlineContent;
     try {
       offlineContent = await RNFetchBlob.fs.readFile(
-        `${this.props.offPath}/offlineContent`,
+        `${offPath}/offlineContent`,
         'utf8'
       );
     } catch (e) {}
@@ -322,7 +327,7 @@ export default class Download extends React.Component {
     } else {
       try {
         offlineContent = await RNFetchBlob.fs.readFile(
-          `${this.props.offPath}/offlineContent`,
+          `${offPath}/offlineContent`,
           'utf8'
         );
       } catch (e) {}
@@ -395,7 +400,7 @@ export default class Download extends React.Component {
       });
       try {
         await RNFetchBlob.fs.writeFile(
-          `${this.props.offPath}/offlineContent`,
+          `${offPath}/offlineContent`,
           JSON.stringify(offlineContent),
           'utf8'
         );
@@ -445,7 +450,7 @@ export default class Download extends React.Component {
     task = RNBackgroundDownloader.download({
       id: u.key,
       url: u.value,
-      destination: `${this.props.offPath}/${u.key}`
+      destination: `${offPath}/${u.key}`
     })
       .begin(async expectedBytes => {
         let freeSpace = isiOS
@@ -563,10 +568,7 @@ export default class Download extends React.Component {
           offlineContent[id].entity.dldedFiles.push(u.key);
 
         let newOfflineContent = JSON.parse(
-          await RNFetchBlob.fs.readFile(
-            `${this.props.offPath}/offlineContent`,
-            'utf8'
-          )
+          await RNFetchBlob.fs.readFile(`${offPath}/offlineContent`, 'utf8')
         );
         newOfflineContent[id] = offlineContent[id];
         this.replaceObjValByStringPath(newOfflineContent, u.pathToValue, u.key);
@@ -603,7 +605,7 @@ export default class Download extends React.Component {
 
           try {
             await RNFetchBlob.fs.writeFile(
-              `${this.props.offPath}/offlineContent`,
+              `${offPath}/offlineContent`,
               JSON.stringify(newOfflineContent),
               'utf8'
             );
@@ -654,7 +656,7 @@ export default class Download extends React.Component {
         }
         try {
           await RNFetchBlob.fs.writeFile(
-            `${this.props.offPath}/offlineContent`,
+            `${offPath}/offlineContent`,
             JSON.stringify(newOfflineContent),
             'utf8'
           );
@@ -719,7 +721,7 @@ export default class Download extends React.Component {
       let dldingFiles = offlineContent[id].entity.dldingFiles;
       try {
         let oc = await RNFetchBlob.fs.readFile(
-          `${this.props.offPath}/offlineContent`,
+          `${offPath}/offlineContent`,
           'utf8'
         );
         dldedFiles = [...dldedFiles, oc[id].entity.dldedFiles];
@@ -728,11 +730,11 @@ export default class Download extends React.Component {
 
       delete offlineContent[id];
       try {
-        await RNFetchBlob.fs.unlink(`${this.props.offPath}/offlineContent`);
+        await RNFetchBlob.fs.unlink(`${offPath}/offlineContent`);
       } catch (e) {}
       try {
         await RNFetchBlob.fs.writeFile(
-          `${this.props.offPath}/offlineContent`,
+          `${offPath}/offlineContent`,
           JSON.stringify(offlineContent),
           'utf8'
         );
@@ -747,13 +749,13 @@ export default class Download extends React.Component {
       if (!keepFiles)
         dldedFiles.map(async df => {
           try {
-            await RNFetchBlob.fs.unlink(`${this.props.offPath}/${df}`);
+            await RNFetchBlob.fs.unlink(`${offPath}/${df}`);
           } catch (e) {}
         });
       if (!keepFiles && dldingFiles)
         dldingFiles.map(async df => {
           try {
-            await RNFetchBlob.fs.unlink(`${this.props.offPath}/${df}`);
+            await RNFetchBlob.fs.unlink(`${offPath}/${df}`);
           } catch (e) {}
         });
       try {
@@ -955,7 +957,7 @@ export default class Download extends React.Component {
         val[ap] = isiOS ? newVal : `file:///${newVal}`;
         if (!isiOS && val[ap].indexOf('.svg') > -1)
           val[ap] = `data:image/svg+xml;utf8,${await RNFetchBlob.fs.readFile(
-            val[ap].replace('file://', `file://${this.props.offPath}`)
+            val[ap].replace('file://', `file://${offPath}`)
           )}`;
       } else {
         if (ap.indexOf('{') > -1) {

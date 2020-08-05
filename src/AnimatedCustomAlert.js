@@ -82,6 +82,48 @@ export default class AnimatedCustomAlert extends React.PureComponent {
             >
               {this.message}
             </Text>
+            <TouchableOpacity
+              testID='deleteBtn'
+              onPress={this.props.onDelete}
+              style={{
+                minHeight: 46,
+                marginTop: 10,
+                borderWidth: 2,
+                borderRadius: 25,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderColor: propStyle?.deleteTouchableBorderColor || 'black',
+                backgroundColor:
+                  propStyle?.deleteTouchableBackgroundColor || 'white'
+              }}
+            >
+              <Text
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+                style={{
+                  padding: 15,
+                  fontSize: 15,
+                  color: '#ffffff',
+                  textAlign: 'center',
+                  fontFamily: 'RobotoCondensed-Bold'
+                }}
+              >
+                DELETE
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity testID='cancelBtn' onPress={() => this.toggle()}>
+              <Text
+                maxFontSizeMultiplier={commonService.maxFontMultiplier}
+                style={{
+                  fontSize: 15,
+                  marginTop: 10,
+                  textAlign: 'center',
+                  fontFamily: 'RobotoCondensed-Bold',
+                  color: propStyle?.touchableCancelColor || 'black'
+                }}
+              >
+                CANCEL
+              </Text>
+            </TouchableOpacity>
             {this.props.additionalBtn}
             {this.props.additionalTextBtn}
           </Animated.View>
