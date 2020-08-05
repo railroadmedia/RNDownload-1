@@ -1086,6 +1086,22 @@ export default class Download extends React.Component {
   }
 }
 
+export const getOfflineContent = async offPath => {
+  offPath =
+    offPath || isiOS
+      ? RNFetchBlob.fs.dirs.LibraryDir
+      : RNFetchBlob.fs.dirs.DocumentDir;
+  console.log(offPath);
+  let downloads = [];
+  try {
+    let offlineContent = JSON.parse(
+      await RNFetchBlob.fs.readFile(`${offPath}/offlineContent`, 'utf8')
+    );
+    Object.keys(offlineContent).map(key => downloads.push(offlineContent[key]));
+  } catch (e) {}
+  return downloads;
+};
+
 const styles = StyleSheet.create({
   underCompleteTOpacities: {
     alignItems: 'center'
