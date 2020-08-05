@@ -259,7 +259,7 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 14,
                       color: '#000000',
-                      fontFamily: 'OpenSans'
+                      fontFamily: 'OpenSans-Regular'
                     }}
                   >
                     {resource.resource_name}
@@ -272,7 +272,7 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 12,
                       marginRight: 10,
-                      fontFamily: 'OpenSans'
+                      fontFamily: 'OpenSans-Regular'
                     }}
                   >
                     {resource.extension?.toUpperCase()}
@@ -308,7 +308,7 @@ export default class DownloadResources extends React.Component {
               style={{
                 color: 'red',
                 fontSize: 14,
-                fontFamily: 'OpenSans'
+                fontFamily: 'OpenSans-Regular'
               }}
             >
               Cancel

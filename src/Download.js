@@ -993,7 +993,7 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans'
+                    fontFamily: 'OpenSans-Regular'
                   }}
                   onLayout={e => {
                     if (this._isMounted)
@@ -1036,7 +1036,7 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans',
+                    fontFamily: 'OpenSans-Regular',
                     color: this.props.textColor || 'white'
                   }}
                 >
@@ -1060,7 +1060,7 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans',
+                    fontFamily: 'OpenSans-Regular',
                     color: this.props.textColor || 'white'
                   }}
                 >
