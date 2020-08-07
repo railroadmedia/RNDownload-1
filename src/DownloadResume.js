@@ -1,4 +1,4 @@
-import { Platform, AppState, DeviceEventEmitter } from 'react-native';
+import { Alert, Platform, AppState, DeviceEventEmitter } from 'react-native';
 
 import RNFetchBlob from 'rn-fetch-blob';
 import NetInfo from '@react-native-community/netinfo';

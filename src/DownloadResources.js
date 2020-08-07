@@ -5,6 +5,7 @@ import {
   View,
   Text,
   Alert,
+  Alert,
   Platform,
   ScrollView,
   TouchableOpacity,
