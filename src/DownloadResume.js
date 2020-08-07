@@ -16,7 +16,7 @@ export default class DownloadResume {
         ? RNFetchBlob.fs.dirs.LibraryDir
         : RNFetchBlob.fs.dirs.DocumentDir;
 
-    NetInfo.addEventListener(this.handleConnectivity);
+    // NetInfo.addEventListener(this.handleConnectivity);
     AppState.addEventListener('change', this.handleDownloads);
   }
 
@@ -97,7 +97,7 @@ export default class DownloadResume {
               [{ text: 'OK' }],
               { cancelable: false }
             );
-            task.stop();
+            existingDld.stop();
             this.delete(offlineContent, dldingId);
             delete downloadService.deletedDld;
             return;
@@ -106,11 +106,11 @@ export default class DownloadResume {
         .progress(async p => {
           clearTimeout(this.enforceLowStorageAction);
           if (downloadService.deletedDld) {
-            task.pause();
+            existingDld.pause();
             let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
             delete downloadService.deletedDld;
-            if (task.id.indexOf(deletedId) > -1) {
-              task.stop();
+            if (existingDld.id.indexOf(deletedId) > -1) {
+              existingDld.stop();
               let firstDldingContentId;
               if (!firstDldingContentId || !firstDldingContentId.length) {
                 try {
@@ -122,7 +122,7 @@ export default class DownloadResume {
               }
               return;
             }
-            task.resume();
+            existingDld.resume();
           }
           progress[existingDld.id] = p;
           sizes[existingDld.id] = existingDld.totalBytes;
@@ -160,7 +160,7 @@ export default class DownloadResume {
                 [{ text: 'OK' }],
                 { cancelable: false }
               );
-              task.stop();
+              existingDld.stop();
               this.delete(offlineContent, dldingId);
               delete downloadService.deletedDld;
               return;
@@ -171,7 +171,7 @@ export default class DownloadResume {
           if (downloadService.deletedDld) {
             let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
             delete downloadService.deletedDld;
-            if (task.id.indexOf(deletedId) > -1) {
+            if (existingDld.id.indexOf(deletedId) > -1) {
               let firstDldingContentId;
               if (!firstDldingContentId || !firstDldingContentId.length) {
                 try {

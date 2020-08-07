@@ -761,7 +761,10 @@ export default class Download extends React.Component {
           } catch (e) {}
         });
       try {
-        task.stop();
+        let existingDld = (
+          await RNBackgroundDownloader.checkForExistingDownloads()
+        )[0];
+        existingDld.id.includes(id) && existingDld?.stop();
       } catch (e) {}
       resolve({ ocAfterDelete: offlineContent, deletedId: id });
     }));
