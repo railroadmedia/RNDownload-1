@@ -1093,7 +1093,6 @@ export const getOfflineContent = async offPath => {
     offPath || isiOS
       ? RNFetchBlob.fs.dirs.LibraryDir
       : RNFetchBlob.fs.dirs.DocumentDir;
-  console.log(offPath);
   let downloads = [];
   try {
     let offlineContent = JSON.parse(

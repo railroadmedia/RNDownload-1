@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@react-native-community/netinfo": "*",
-    "react-native-background-downloader": "git+https://github.com/railroadmedia/react-native-background-downloader.git",
+    "react-native-background-downloader": "git+https://github.com/railroadmedia/react-native-background-downloader.git#2.3.4.1",
     "react-native-svg": "*",
     "rn-fetch-blob": "*"
   },

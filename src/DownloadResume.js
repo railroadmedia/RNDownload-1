@@ -24,7 +24,7 @@ export default class DownloadResume {
     if (!(type === 'none' || type === 'unknown')) this.handleDownloads();
   };
 
-  async handleDownloads() {
+  handleDownloads = async () => {
     let existingDld = (
       await RNBackgroundDownloader.checkForExistingDownloads()
     )[0];
@@ -329,9 +329,9 @@ export default class DownloadResume {
     } else {
       this.bckgDld(offlineContent, dldingId);
     }
-  }
+  };
 
-  async bckgDld(offlineContent, id) {
+  bckgDld = async (offlineContent, id) => {
     if (id) {
       let dldingFiles = offlineContent[id].entity.dldingFiles;
       if (dldingFiles) {
@@ -580,9 +580,9 @@ export default class DownloadResume {
         delete downloadService.deletedDld;
         return;
       });
-  }
+  };
 
-  async delete(offlineContent, id, keepFiles) {
+  delete = async (offlineContent, id, keepFiles) => {
     return (downloadService.deletedDld = new Promise(async resolve => {
       let dldedFiles = offlineContent[id].entity.dldedFiles;
       let dldingFiles = offlineContent[id].entity.dldingFiles;
@@ -624,9 +624,9 @@ export default class DownloadResume {
         });
       resolve({ ocAfterDelete: offlineContent, deletedId: id });
     }));
-  }
+  };
 
-  replaceObjValByStringPath(obj, strPath, newVal) {
+  replaceObjValByStringPath = (obj, strPath, newVal) => {
     let arrPath = strPath.split(',');
     let val;
     arrPath.map(async (ap, i) => {
@@ -647,5 +647,5 @@ export default class DownloadResume {
         }
       }
     });
-  }
+  };
 }
