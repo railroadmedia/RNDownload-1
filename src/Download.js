@@ -18,6 +18,8 @@ import RNBackgroundDownloader from 'react-native-background-downloader';
 import { downloadRes } from './DownloadResources';
 import AnimatedCustomAlert from './AnimatedCustomAlert';
 
+import downloadService from './services/download.service';
+
 import { download, trash, stopDownload } from './img/svgs';
 
 let task;
@@ -1100,6 +1102,312 @@ export const getOfflineContent = async offPath => {
     Object.keys(offlineContent).map(key => downloads.push(offlineContent[key]));
   } catch (e) {}
   return downloads;
+};
+
+export const handleDownloads = async () => {
+  let existingDld = (
+    await RNBackgroundDownloader.checkForExistingDownloads()
+  )[0];
+  let offlineContent;
+  if (this.offlineContent && Object.keys(this.offlineContent).length) {
+    offlineContent = this.offlineContent;
+  } else {
+    try {
+      offlineContent = await RNFetchBlob.fs.readFile(
+        `${commonService.offPath}/offlineContent`,
+        'utf8'
+      );
+    } catch (e) {}
+    if (!offlineContent) return;
+    try {
+      offlineContent = JSON.parse(offlineContent);
+    } catch (e) {
+      return;
+    }
+  }
+  let dldingId;
+  try {
+    dldingId = Object.values(offlineContent).filter(
+      ocv => ocv.entity.dlding && ocv.entity.dldedFiles.length
+    );
+  } catch (e) {}
+  if (!dldingId || !dldingId.length) {
+    try {
+      dldingId = Object.values(offlineContent).filter(ocv => ocv.entity.dlding);
+    } catch (e) {}
+  }
+  if (dldingId.length) dldingId = dldingId[0].entity.id;
+  else return;
+
+  let sizes = offlineContent[dldingId].entity.sizes;
+  let progress = offlineContent[dldingId].entity.progress;
+
+  if (dldingId) {
+    let dldingFiles = offlineContent[dldingId].entity.dldingFiles;
+    if (dldingFiles) {
+      dldingFiles.map((dingF, i) => {
+        offlineContent[dldingId].entity.dldedFiles.map(dedF => {
+          if (dedF === dingF.key)
+            offlineContent[dldingId].entity.dldingFiles.splice(i, 1);
+        });
+      });
+    }
+  }
+  if (existingDld && existingDld.state !== 'DONE') await existingDld.resume();
+  if (existingDld && existingDld.state !== 'DONE') {
+    existingDld
+      .begin(async expectedBytes => {
+        let freeSpace = commonService.isiOS
+          ? await RNFetchBlob.fs.df().free
+          : await RNFetchBlob.fs.df().internal_free;
+        if (freeSpace < expectedBytes) {
+          let title = '';
+          try {
+            title = `'${
+              offlineContent[dldingId].entity.fields.filter(
+                f => f.key === 'title'
+              )[0].value
+            }'`;
+          } catch (e) {}
+          Alert.alert(
+            `Error while downloading ${title}`,
+            'There is insufficient storage space on your device. Please free up some space and try again.',
+            [{ text: 'OK' }],
+            { cancelable: false }
+          );
+          task.stop();
+          this.delete(offlineContent, dldingId);
+          delete downloadService.deletedDld;
+          return;
+        }
+      })
+      .progress(async p => {
+        clearTimeout(this.enforceLowStorageAction);
+        if (downloadService.deletedDld) {
+          task.pause();
+          let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
+          delete downloadService.deletedDld;
+          if (task.id.indexOf(deletedId) > -1) {
+            task.stop();
+            let firstDldingContentId;
+            if (!firstDldingContentId || !firstDldingContentId.length) {
+              try {
+                firstDldingContentId = Object.values(ocAfterDelete).filter(
+                  oc => oc.entity.dlding
+                )[0].entity.id;
+                this.bckgDld(ocAfterDelete, firstDldingContentId);
+              } catch (e) {}
+            }
+            return;
+          }
+          task.resume();
+        }
+        progress[existingDld.id] = p;
+        sizes[existingDld.id] = existingDld.totalBytes;
+        if (
+          offlineContent[dldingId].entity.dldedFiles.indexOf(existingDld.id) < 0
+        )
+          offlineContent[dldingId].entity.dldedFiles.push(existingDld.id);
+
+        let totalProgress = 0;
+        Object.values(progress).map(p => (totalProgress += p));
+        totalProgress /= Object.keys(progress).length;
+
+        DeviceEventEmitter.emit('dldProgress', {
+          id: dldingId,
+          val: totalProgress
+        });
+
+        this.enforceLowStorageAction = setTimeout(async () => {
+          let freeSpace = commonService.isiOS
+            ? await RNFetchBlob.fs.df().free
+            : await RNFetchBlob.fs.df().internal_free;
+          if (freeSpace < 500000000) {
+            let title = '';
+            try {
+              title = `'${
+                offlineContent[dldingId].entity.fields.filter(
+                  f => f.key === 'title'
+                )[0].value
+              }'`;
+            } catch (e) {}
+            Alert.alert(
+              `Error while downloading ${title}`,
+              'There is insufficient storage space on your device. Please free up some space and try again.',
+              [{ text: 'OK' }],
+              { cancelable: false }
+            );
+            task.stop();
+            this.delete(offlineContent, dldingId);
+            delete downloadService.deletedDld;
+            return;
+          }
+        }, 30000);
+      })
+      .done(async () => {
+        if (downloadService.deletedDld) {
+          let { ocAfterDelete, deletedId } = await downloadService.deletedDld;
+          delete downloadService.deletedDld;
+          if (task.id.indexOf(deletedId) > -1) {
+            let firstDldingContentId;
+            if (!firstDldingContentId || !firstDldingContentId.length) {
+              try {
+                firstDldingContentId = Object.values(ocAfterDelete).filter(
+                  oc => oc.entity.dlding
+                )[0].entity.id;
+                this.bckgDld(ocAfterDelete, firstDldingContentId);
+              } catch (e) {}
+            }
+            return;
+          }
+        }
+        progress[existingDld.id] = 1;
+        sizes[existingDld.id] = existingDld.totalBytes;
+        let totalProgress = 0;
+        Object.values(progress).map(p => (totalProgress += p));
+        totalProgress /= Object.keys(progress).length;
+        DeviceEventEmitter.emit('dldProgress', {
+          id: dldingId,
+          val: totalProgress
+        });
+
+        if (
+          offlineContent[dldingId].entity.dldedFiles.indexOf(existingDld.id) < 0
+        )
+          offlineContent[dldingId].entity.dldedFiles.push(existingDld.id);
+
+        let newOfflineContent = JSON.parse(
+          await RNFetchBlob.fs.readFile(
+            `${commonService.offPath}/offlineContent`,
+            'utf8'
+          )
+        );
+        newOfflineContent[dldingId] = offlineContent[dldingId];
+        this.replaceObjValByStringPath(
+          newOfflineContent,
+          newOfflineContent[dldingId].entity.dldingFiles[0].pathToValue,
+          existingDld.id
+        );
+
+        if (newOfflineContent[dldingId].entity.dldingFiles.length === 1) {
+          newOfflineContent[dldingId].entity.offlineSize =
+            newOfflineContent[dldingId].entity.offlineSize || 0;
+          Object.values(sizes).map(
+            s => (newOfflineContent[dldingId].entity.offlineSize += s)
+          );
+
+          delete newOfflineContent[dldingId].entity.urls;
+          delete newOfflineContent[dldingId].entity.sizes;
+          delete newOfflineContent[dldingId].entity.dlding;
+          delete newOfflineContent[dldingId].entity.progress;
+          delete newOfflineContent[dldingId].entity.dldingFiles;
+          DeviceEventEmitter.emit('dldProgress', {
+            id: dldingId,
+            val: undefined
+          });
+          clearTimeout(this.enforceLowStorageAction);
+
+          try {
+            try {
+              await RNFetchBlob.fs.writeFile(
+                `${commonService.offPath}/offlineContent`,
+                JSON.stringify(newOfflineContent),
+                'utf8'
+              );
+            } catch (e) {
+              let title = '';
+              try {
+                title = `'${
+                  offlineContent[dldingId].entity.fields.filter(
+                    f => f.key === 'title'
+                  )[0].value
+                }'`;
+              } catch (e) {}
+              Alert.alert(
+                `Error while downloading ${title}`,
+                'There is insufficient storage space on your device. Please free up some space and try again.',
+                [{ text: 'OK' }],
+                { cancelable: false }
+              );
+              this.delete(offlineContent, dldingId);
+              delete downloadService.deletedDld;
+              return;
+            }
+            this.offlineContent = Object.assign({}, newOfflineContent);
+
+            try {
+              let firstDldingContentId = Object.values(
+                newOfflineContent
+              ).filter(noc => noc.entity.dlding)[0].entity.id;
+              return this.bckgDld(newOfflineContent, firstDldingContentId);
+            } catch (e) {}
+
+            let existingLesons = [];
+            if (offlineContent[dldingId].entity.lessons)
+              offlineContent[dldingId].entity.lessons.map(async l => {
+                if (offlineContent[l.id]) existingLesons.push(l.id);
+              });
+            for (let i = 0; i < existingLesons.length; i++)
+              await this.delete(offlineContent, existingLesons[i], true);
+
+            return;
+          } catch (e) {}
+        }
+        try {
+          try {
+            await RNFetchBlob.fs.writeFile(
+              `${commonService.offPath}/offlineContent`,
+              JSON.stringify(newOfflineContent),
+              'utf8'
+            );
+          } catch (e) {
+            let title = '';
+            try {
+              title = `'${
+                offlineContent[dldingId].entity.fields.filter(
+                  f => f.key === 'title'
+                )[0].value
+              }'`;
+            } catch (e) {}
+            Alert.alert(
+              `Error while downloading ${title}`,
+              'There is insufficient storage space on your device. Please free up some space and try again.',
+              [{ text: 'OK' }],
+              { cancelable: false }
+            );
+            this.delete(offlineContent, dldingId);
+            delete downloadService.deletedDld;
+            return;
+          }
+          this.offlineContent = Object.assign({}, newOfflineContent);
+
+          newOfflineContent[dldingId].entity.dldingFiles.splice(0, 1);
+          this.bckgDld(newOfflineContent, dldingId);
+        } catch (e) {}
+      })
+      .error(async error => {
+        clearTimeout(this.enforceLowStorageAction);
+        let title = '';
+        try {
+          title = `'${
+            offlineContent[dldingId].entity.fields.filter(
+              f => f.key === 'title'
+            )[0].value
+          }'`;
+        } catch (e) {}
+        Alert.alert(
+          `Error while downloading ${title}`,
+          'There is insufficient storage space on your device. Please free up some space and try again.',
+          [{ text: 'OK' }],
+          { cancelable: false }
+        );
+        this.delete(offlineContent, dldingId);
+        delete downloadService.deletedDld;
+        return;
+      });
+  } else {
+    this.bckgDld(offlineContent, dldingId);
+  }
 };
 
 const styles = StyleSheet.create({
