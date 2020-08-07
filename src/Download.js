@@ -1114,7 +1114,7 @@ export const handleDownloads = async () => {
   } else {
     try {
       offlineContent = await RNFetchBlob.fs.readFile(
-        `${commonService.offPath}/offlineContent`,
+        `${offPath}/offlineContent`,
         'utf8'
       );
     } catch (e) {}
@@ -1157,7 +1157,7 @@ export const handleDownloads = async () => {
   if (existingDld && existingDld.state !== 'DONE') {
     existingDld
       .begin(async expectedBytes => {
-        let freeSpace = commonService.isiOS
+        let freeSpace = isiOS
           ? await RNFetchBlob.fs.df().free
           : await RNFetchBlob.fs.df().internal_free;
         if (freeSpace < expectedBytes) {
@@ -1219,7 +1219,7 @@ export const handleDownloads = async () => {
         });
 
         this.enforceLowStorageAction = setTimeout(async () => {
-          let freeSpace = commonService.isiOS
+          let freeSpace = isiOS
             ? await RNFetchBlob.fs.df().free
             : await RNFetchBlob.fs.df().internal_free;
           if (freeSpace < 500000000) {
@@ -1277,10 +1277,7 @@ export const handleDownloads = async () => {
           offlineContent[dldingId].entity.dldedFiles.push(existingDld.id);
 
         let newOfflineContent = JSON.parse(
-          await RNFetchBlob.fs.readFile(
-            `${commonService.offPath}/offlineContent`,
-            'utf8'
-          )
+          await RNFetchBlob.fs.readFile(`${offPath}/offlineContent`, 'utf8')
         );
         newOfflineContent[dldingId] = offlineContent[dldingId];
         this.replaceObjValByStringPath(
@@ -1310,7 +1307,7 @@ export const handleDownloads = async () => {
           try {
             try {
               await RNFetchBlob.fs.writeFile(
-                `${commonService.offPath}/offlineContent`,
+                `${offPath}/offlineContent`,
                 JSON.stringify(newOfflineContent),
                 'utf8'
               );
@@ -1356,7 +1353,7 @@ export const handleDownloads = async () => {
         try {
           try {
             await RNFetchBlob.fs.writeFile(
-              `${commonService.offPath}/offlineContent`,
+              `${offPath}/offlineContent`,
               JSON.stringify(newOfflineContent),
               'utf8'
             );
