@@ -1,7 +1,14 @@
+import DownloadResume from './src/DownloadResume';
 import Download, { getOfflineContent } from './src/Download';
 import DownloadResources, { downloadRes } from './src/DownloadResources';
 
-export { Download, DownloadResources, downloadRes, getOfflineContent };
+export {
+  Download,
+  DownloadResume,
+  DownloadResources,
+  downloadRes,
+  getOfflineContent
+};
 export const videoMock = {
   id: 263378,
   slug: 'introduction',
