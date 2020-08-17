@@ -20,6 +20,14 @@ export default class DownloadResume {
     AppState.addEventListener('change', this.handleDownloads);
   }
 
+  static addProgressListener(callback) {
+    DeviceEventEmitter.addListener('dldProgress', callback);
+  }
+
+  static removeProgressListener(callback) {
+    DeviceEventEmitter.removeListener('dldProgress', callback);
+  }
+
   handleConnectivity = async ({ type }) => {
     if (!(type === 'none' || type === 'unknown')) this.handleDownloads();
   };

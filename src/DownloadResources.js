@@ -222,6 +222,14 @@ const renderSvgs = (extension, theme) => {
 };
 
 export default class DownloadResources extends React.Component {
+  static addProgressListener(callback) {
+    DeviceEventEmitter.addListener('dldProgress', callback);
+  }
+
+  static removeProgressListener(callback) {
+    DeviceEventEmitter.removeListener('dldProgress', callback);
+  }
+
   render() {
     let { resources, maxFontMultiplier } = this.props;
     return (

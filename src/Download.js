@@ -120,6 +120,14 @@ export default class Download extends React.Component {
     );
   }
 
+  static addProgressListener(callback) {
+    DeviceEventEmitter.addListener('dldProgress', callback);
+  }
+
+  static removeProgressListener(callback) {
+    DeviceEventEmitter.removeListener('dldProgress', callback);
+  }
+
   dldReducer = download => {
     delete download.sort;
     delete download.brand;
