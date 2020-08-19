@@ -998,7 +998,6 @@ export default class Download extends React.Component {
                 <Text
                   maxFontSizeMultiplier={this.props.maxFontMultiplier}
                   style={{
-                    color: 'red',
                     fontSize: 10,
                     marginTop: 5,
                     color: propStyle.touchableTextDownloadColor || 'white',
@@ -1015,15 +1014,16 @@ export default class Download extends React.Component {
                 style={{
                   height: 2,
                   marginTop: 3,
-                  backgroundColor: 'grey',
-                  width: this.state.dldWidth
+                  width: this.state.dldWidth,
+                  backgroundColor:
+                    propStyle?.touchableProgressRemainingBackground
                 }}
               >
                 <Animated.View
                   style={{
                     flex: 1,
-                    backgroundColor: 'red',
-                    width: this.state.percentage
+                    width: this.state.percentage,
+                    backgroundColor: propStyle?.touchableProgressDoneBackground
                   }}
                 />
               </View>
@@ -1066,7 +1066,6 @@ export default class Download extends React.Component {
                   style={{
                     fontSize: 10,
                     marginTop: 5,
-                    color: '#ffffff',
                     color: propStyle?.touchableTextDownloadColor || 'white',
                     fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
