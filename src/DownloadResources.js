@@ -231,7 +231,7 @@ export default class DownloadResources extends React.Component {
   }
 
   render() {
-    let { resources, maxFontMultiplier } = this.props;
+    let { resources, maxFontMultiplier, styles: propStyle } = this.props;
     return (
       <View style={{ backgroundColor: 'red' }}>
         <ScrollView>
@@ -267,7 +267,7 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 14,
                       color: '#000000',
-                      fontFamily: 'OpenSans-Regular'
+                      fontFamily: propStyle?.touchableTextResourceName
                     }}
                   >
                     {resource.resource_name}
@@ -280,7 +280,7 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 12,
                       marginRight: 10,
-                      fontFamily: 'OpenSans-Regular'
+                      fontFamily: propStyle?.touchableTextResourceExtension
                     }}
                   >
                     {resource.extension?.toUpperCase()}
@@ -316,7 +316,7 @@ export default class DownloadResources extends React.Component {
               style={{
                 color: 'red',
                 fontSize: 14,
-                fontFamily: 'OpenSans-Regular'
+                fontFamily: propStyle?.touchableTextResourceCancel
               }}
             >
               Cancel

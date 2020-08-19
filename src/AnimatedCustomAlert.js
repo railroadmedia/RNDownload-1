@@ -63,22 +63,26 @@ export default class AnimatedCustomAlert extends React.PureComponent {
             <Text
               maxFontSizeMultiplier={this.props.maxFontMultiplier}
               testID='alertTitle'
-              style={[
-                styles.mediumTitle,
-                styles.text,
-                { color: propStyle?.titleTextColor || 'black' }
-              ]}
+              style={{
+                fontSize: 20,
+                textAlign: 'center',
+                paddingVertical: 10,
+                fontFamily: propStyle?.textTitleFontFamily,
+                color: propStyle?.titleTextColor || 'black'
+              }}
             >
               {this.title}
             </Text>
             <Text
               maxFontSizeMultiplier={this.props.maxFontMultiplier}
               testID='alertMessage'
-              style={[
-                styles.mediumText,
-                styles.text,
-                { color: propStyle?.subtitleTextColor || 'black' }
-              ]}
+              style={{
+                fontSize: 14,
+                textAlign: 'center',
+                paddingVertical: 10,
+                fontFamily: propStyle.textMessageFontFamily,
+                color: propStyle?.subtitleTextColor || 'black'
+              }}
             >
               {this.message}
             </Text>
@@ -103,8 +107,8 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   padding: 15,
                   fontSize: 15,
                   textAlign: 'center',
-                  fontFamily: 'RobotoCondensed-Bold',
-                  color: propStyle?.deleteTextColor || 'black'
+                  color: propStyle?.deleteTextColor || 'black',
+                  fontFamily: propStyle.touchableTextDeleteFontFamily
                 }}
               >
                 DELETE
@@ -117,8 +121,8 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   fontSize: 15,
                   marginTop: 10,
                   textAlign: 'center',
-                  fontFamily: 'RobotoCondensed-Bold',
-                  color: propStyle?.touchableCancelColor || 'black'
+                  color: propStyle?.touchableCancelColor || 'black',
+                  fontFamily: propStyle.touchableTextCancelFontFamily
                 }}
               >
                 CANCEL
@@ -140,22 +144,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,.5)'
   },
-  text: {
-    textAlign: 'center',
-    paddingVertical: 10
-  },
   animatedView: {
     padding: 10,
     paddingHorizontal: 50,
     borderRadius: 10,
     margin: 5
-  },
-  mediumTitle: {
-    fontSize: 20,
-    fontFamily: 'OpenSans-Bold'
-  },
-  mediumText: {
-    fontSize: 14,
-    fontFamily: 'OpenSans-Regular'
   }
 });

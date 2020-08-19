@@ -33,8 +33,6 @@ const windowDims = Dimensions.get('window'),
       : windowDims.height / 2;
 
 export default class Download extends React.Component {
-  _isMounted = false;
-
   state = {
     dldWidth: 0,
     dlding: false,
@@ -53,7 +51,6 @@ export default class Download extends React.Component {
   }
 
   async componentDidMount() {
-    this._isMounted = true;
     let offlineContent;
     try {
       offlineContent = await RNFetchBlob.fs.readFile(
@@ -72,14 +69,14 @@ export default class Download extends React.Component {
       if (
         offlineContent[this.props.entity.id] &&
         offlineContent[this.props.entity.id].entity.dlding
-      ) {
-        if (this._isMounted) this.setState({ dlding: true });
-      } else if (
+      )
+        this.setState({ dlding: true });
+      else if (
         offlineContent[this.props.entity.id] &&
         !offlineContent[this.props.entity.id].entity.dlding
-      ) {
-        if (this._isMounted) this.setState({ entityExists: true });
-      } else {
+      )
+        this.setState({ entityExists: true });
+      else {
         let offlineKeyIds = Object.keys(offlineContent);
         let found = false;
         for (let i = 0; i < offlineKeyIds.length; i++) {
@@ -95,14 +92,14 @@ export default class Download extends React.Component {
                 offlineContent[offlineKeyIds[i]].entity.dlding
               ) {
                 found = true;
-                if (this._isMounted) this.setState({ dlding: true });
+                this.setState({ dlding: true });
               } else if (
                 this.props.entity.id ===
                   offlineContent[offlineKeyIds[i]].entity.lessons[j].id &&
                 !offlineContent[offlineKeyIds[i]].entity.dlding
               ) {
                 found = true;
-                if (this._isMounted) this.setState({ entityExists: true });
+                this.setState({ entityExists: true });
               }
             }
           }
@@ -113,7 +110,6 @@ export default class Download extends React.Component {
   }
 
   componentWillUnmount() {
-    this._isMounted = false;
     DeviceEventEmitter.removeListener(
       'dldProgress',
       this.percentageListener.bind(this)
@@ -246,14 +242,13 @@ export default class Download extends React.Component {
   };
 
   percentageListener(percentage) {
-    if (this._isMounted && percentage.id === this.props.entity.id) {
+    if (percentage.id === this.props.entity.id) {
       if (percentage.val === undefined && this.props.onDone)
         this.props.onDone();
       if (percentage.val !== undefined) this.animateProgress(percentage.val);
       else if (percentage.val === undefined && this.deletedDld)
         this.setState({ dlding: false, entityExists: false });
-      else if (this._isMounted)
-        this.setState({ dlding: false, entityExists: true });
+      else this.setState({ dlding: false, entityExists: true });
     }
   }
 
@@ -364,7 +359,7 @@ export default class Download extends React.Component {
       this.offlineCToDelete = offlineContent;
       return this.alert.toggle(title, msg);
     } else {
-      if (this._isMounted) this.setState({ dlding: true });
+      this.setState({ dlding: true });
       let entity = await this.collectUrls();
 
       this.animateProgress(0);
@@ -610,8 +605,7 @@ export default class Download extends React.Component {
           delete newOfflineContent[id].entity.dlding;
           delete newOfflineContent[id].entity.progress;
           delete newOfflineContent[id].entity.dldingFiles;
-          if (this._isMounted)
-            this.setState({ dlding: false, entityExists: true });
+          this.setState({ dlding: false, entityExists: true });
 
           try {
             await RNFetchBlob.fs.writeFile(
@@ -717,8 +711,7 @@ export default class Download extends React.Component {
     if (this.resDldling) {
       this.animateProgress(0);
       DeviceEventEmitter.emit('dldProgress', { id, val: undefined });
-      if (this._isMounted)
-        this.setState({ dlding: false, entityExists: false });
+      this.setState({ dlding: false, entityExists: false });
       if (this.resources)
         this.resources.map((r, i) => downloadRes(null, i, null, null, true));
       delete this.resources;
@@ -753,8 +746,7 @@ export default class Download extends React.Component {
 
       this.animateProgress(0);
       DeviceEventEmitter.emit('dldProgress', { id, val: undefined });
-      if (this._isMounted)
-        this.setState({ dlding: false, entityExists: false });
+      this.setState({ dlding: false, entityExists: false });
 
       if (!keepFiles)
         dldedFiles.map(async df => {
@@ -929,7 +921,7 @@ export default class Download extends React.Component {
 
   progress(progress, id) {
     DeviceEventEmitter.emit('dldProgress', { id, val: progress });
-    if (this._isMounted) this.animateProgress(progress);
+    this.animateProgress(progress);
   }
 
   getExtension(name) {
@@ -984,6 +976,7 @@ export default class Download extends React.Component {
   }
 
   render() {
+    const { styles: propStyle } = this.props;
     return (
       <React.Fragment>
         <TouchableOpacity
@@ -994,7 +987,7 @@ export default class Download extends React.Component {
             <View
               style={{ alignItems: 'center' }}
               onLayout={e => {
-                if (this._isMounted && this.props.noText)
+                if (this.props.noText)
                   this.setState({ dldWidth: e.nativeEvent.layout.width });
               }}
             >
@@ -1008,12 +1001,11 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans-Regular'
+                    fontFamily: propStyle?.ouchableTextDownload
                   }}
-                  onLayout={e => {
-                    if (this._isMounted)
-                      this.setState({ dldWidth: e.nativeEvent.layout.width });
-                  }}
+                  onLayout={e =>
+                    this.setState({ dldWidth: e.nativeEvent.layout.width })
+                  }
                 >
                   Downloading
                 </Text>
@@ -1051,8 +1043,8 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans-Regular',
-                    color: this.props.textColor || 'white'
+                    color: this.props.textColor || 'white',
+                    fontFamily: propStyle?.touchableTextDownload
                   }}
                 >
                   Downloaded
@@ -1075,8 +1067,8 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: 'OpenSans-Regular',
-                    color: this.props.textColor || 'white'
+                    color: this.props.textColor || 'white',
+                    fontFamily: propStyle?.touchableTextDownload
                   }}
                 >
                   Download
@@ -1086,6 +1078,14 @@ export default class Download extends React.Component {
           )}
         </TouchableOpacity>
         <AnimatedCustomAlert
+          styles={{
+            textTitleFontFamily: propStyle?.alertTextTitleFontFamily,
+            textMessageFontFamily: propStyle?.alertTextMessageFontFamily,
+            touchableTextDeleteFontFamily:
+              propStyle?.alertTouchableTextDeleteFontFamily,
+            touchableTextCancelFontFamily:
+              propStyle?.alertTouchableTextCancelFontFamily
+          }}
           ref={r => (this.alert = r)}
           onDelete={() => {
             this.delete(this.offlineCToDelete, this.idToDelete);
