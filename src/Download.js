@@ -991,7 +991,11 @@ export default class Download extends React.Component {
                   this.setState({ dldWidth: e.nativeEvent.layout.width });
               }}
             >
-              {stopDownload({ width: 25, height: 25, fill: 'red' })}
+              {stopDownload({
+                width: 25,
+                height: 25,
+                fill: propStyle?.iconDownloadColor || 'white'
+              })}
 
               {!this.props.noText && (
                 <Text
