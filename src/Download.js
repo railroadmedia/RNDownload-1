@@ -1001,7 +1001,7 @@ export default class Download extends React.Component {
                     color: 'red',
                     fontSize: 10,
                     marginTop: 5,
-                    color: '#ffffff',
+                    color: propStyle.touchableTextDownloadColor || 'white',
                     fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
                   onLayout={e =>
@@ -1014,16 +1014,16 @@ export default class Download extends React.Component {
               <View
                 style={{
                   height: 2,
+                  marginTop: 3,
                   backgroundColor: 'grey',
-                  width: this.state.dldWidth,
-                  marginTop: 3
+                  width: this.state.dldWidth
                 }}
               >
                 <Animated.View
                   style={{
-                    width: this.state.percentage,
+                    flex: 1,
                     backgroundColor: 'red',
-                    flex: 1
+                    width: this.state.percentage
                   }}
                 />
               </View>
@@ -1032,8 +1032,8 @@ export default class Download extends React.Component {
           {!this.state.dlding && this.state.entityExists && (
             <View style={{ alignItems: 'center' }}>
               {trash({
-                height: 25,
                 width: 25,
+                height: 25,
                 fill: propStyle?.iconDownloadColor || 'white'
               })}
 
