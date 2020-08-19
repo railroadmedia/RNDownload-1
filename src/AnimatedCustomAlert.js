@@ -80,7 +80,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 fontSize: 14,
                 textAlign: 'center',
                 paddingVertical: 10,
-                fontFamily: propStyle.textMessageFontFamily,
+                fontFamily: propStyle?.textMessageFontFamily,
                 color: propStyle?.subtitleTextColor || 'black'
               }}
             >
@@ -108,7 +108,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   fontSize: 15,
                   textAlign: 'center',
                   color: propStyle?.deleteTextColor || 'black',
-                  fontFamily: propStyle.touchableTextDeleteFontFamily
+                  fontFamily: propStyle?.touchableTextDeleteFontFamily
                 }}
               >
                 DELETE
@@ -122,7 +122,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   marginTop: 10,
                   textAlign: 'center',
                   color: propStyle?.touchableCancelColor || 'black',
-                  fontFamily: propStyle.touchableTextCancelFontFamily
+                  fontFamily: propStyle?.touchableTextCancelFontFamily
                 }}
               >
                 CANCEL
