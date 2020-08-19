@@ -68,7 +68,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 textAlign: 'center',
                 paddingVertical: 10,
                 fontFamily: propStyle?.textTitleFontFamily,
-                color: propStyle?.titleTextColor || 'black'
+                color: propStyle?.textTitleColor || 'black'
               }}
             >
               {this.title}
@@ -81,7 +81,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 textAlign: 'center',
                 paddingVertical: 10,
                 fontFamily: propStyle?.textMessageFontFamily,
-                color: propStyle?.subtitleTextColor || 'black'
+                color: propStyle?.textMessageColor || 'black'
               }}
             >
               {this.message}
@@ -96,9 +96,8 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 borderRadius: 25,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderColor: propStyle?.deleteTouchableBorderColor || 'black',
-                backgroundColor:
-                  propStyle?.deleteTouchableBackgroundColor || 'white'
+                borderColor: propStyle?.touchableDeleteBorderColor || 'black',
+                backgroundColor: propStyle?.touchableDeleteBackground || 'white'
               }}
             >
               <Text
@@ -107,7 +106,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   padding: 15,
                   fontSize: 15,
                   textAlign: 'center',
-                  color: propStyle?.deleteTextColor || 'black',
+                  color: propStyle?.touchableTextDeleteColor || 'black',
                   fontFamily: propStyle?.touchableTextDeleteFontFamily
                 }}
               >
@@ -121,7 +120,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                   fontSize: 15,
                   marginTop: 10,
                   textAlign: 'center',
-                  color: propStyle?.touchableCancelColor || 'black',
+                  color: propStyle?.touchableTextCancelColor || 'black',
                   fontFamily: propStyle?.touchableTextCancelFontFamily
                 }}
               >

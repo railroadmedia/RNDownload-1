@@ -1078,8 +1078,17 @@ export default class Download extends React.Component {
         </TouchableOpacity>
         <AnimatedCustomAlert
           styles={{
+            background: propStyle?.alertBackground,
+            textTitleColor: propStyle?.alertTextTitleColor,
+            textMessageColor: propStyle?.alertTextMessageColor,
             textTitleFontFamily: propStyle?.alertTextTitleFontFamily,
             textMessageFontFamily: propStyle?.alertTextMessageFontFamily,
+            touchableTextDeleteColor: propStyle?.alertTouchableTextDeleteColor,
+            touchableTextCancelColor: propStyle?.alertTouchableTextCancelColor,
+            touchableDeleteBackground:
+              propStyle?.alertTouchableDeleteBackground,
+            touchableDeleteBorderColor:
+              propStyle?.alertTouchableDeleteBorderColor,
             touchableTextDeleteFontFamily:
               propStyle?.alertTouchableTextDeleteFontFamily,
             touchableTextCancelFontFamily:
