@@ -979,10 +979,7 @@ export default class Download extends React.Component {
     const { styles: propStyle } = this.props;
     return (
       <React.Fragment>
-        <TouchableOpacity
-          style={[styles.underCompleteTOpacities, this.props.parentStyle]}
-          onPress={this.download}
-        >
+        <TouchableOpacity style={propStyle.touchable} onPress={this.download}>
           {this.state.dlding && (
             <View
               style={{ alignItems: 'center' }}
@@ -1046,8 +1043,7 @@ export default class Download extends React.Component {
                   style={{
                     fontSize: 10,
                     marginTop: 5,
-                    color: '#ffffff',
-                    color: this.props.textColor || 'white',
+                    color: propStyle.touchableTextDownloadColor || 'white',
                     fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
                 >
@@ -1420,9 +1416,3 @@ export const handleDownloads = async () => {
     this.bckgDld(offlineContent, dldingId);
   }
 };
-
-const styles = StyleSheet.create({
-  underCompleteTOpacities: {
-    alignItems: 'center'
-  }
-});
