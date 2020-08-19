@@ -1001,7 +1001,7 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    fontFamily: propStyle?.ouchableTextDownload
+                    fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
                   onLayout={e =>
                     this.setState({ dldWidth: e.nativeEvent.layout.width })
@@ -1033,7 +1033,7 @@ export default class Download extends React.Component {
               {trash({
                 height: 25,
                 width: 25,
-                fill: this.props.iconColor || 'white'
+                fill: propStyle?.iconDownloadColor || 'white'
               })}
 
               {!this.props.noText && (
@@ -1044,7 +1044,7 @@ export default class Download extends React.Component {
                     marginTop: 5,
                     color: '#ffffff',
                     color: this.props.textColor || 'white',
-                    fontFamily: propStyle?.touchableTextDownload
+                    fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
                 >
                   Downloaded
@@ -1057,7 +1057,7 @@ export default class Download extends React.Component {
               {download({
                 height: 25,
                 width: 25,
-                fill: this.props.iconColor || 'white'
+                fill: propStyle?.iconDownloadColor || 'white'
               })}
 
               {!this.props.noText && (
@@ -1067,8 +1067,8 @@ export default class Download extends React.Component {
                     fontSize: 10,
                     marginTop: 5,
                     color: '#ffffff',
-                    color: this.props.textColor || 'white',
-                    fontFamily: propStyle?.touchableTextDownload
+                    color: propStyle?.touchableTextDownloadColor || 'white',
+                    fontFamily: propStyle?.touchableTextDownloadFontFamily
                   }}
                 >
                   Download

@@ -267,7 +267,7 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 14,
                       color: '#000000',
-                      fontFamily: propStyle?.touchableTextResourceName
+                      fontFamily: propStyle?.touchableTextResourceNameFontFamily
                     }}
                   >
                     {resource.resource_name}
@@ -280,7 +280,8 @@ export default class DownloadResources extends React.Component {
                       color: 'red',
                       fontSize: 12,
                       marginRight: 10,
-                      fontFamily: propStyle?.touchableTextResourceExtension
+                      fontFamily:
+                        propStyle?.touchableTextResourceExtensionFontFamily
                     }}
                   >
                     {resource.extension?.toUpperCase()}
@@ -316,7 +317,7 @@ export default class DownloadResources extends React.Component {
               style={{
                 color: 'red',
                 fontSize: 14,
-                fontFamily: propStyle?.touchableTextResourceCancel
+                fontFamily: propStyle?.touchableTextResourceCancelFontFamily
               }}
             >
               Cancel
