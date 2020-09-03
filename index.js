@@ -1,14 +1,7 @@
-import DownloadResume from './src/DownloadResume';
-import Download, { getOfflineContent } from './src/Download';
-import DownloadResources, { downloadRes } from './src/DownloadResources';
+import Download_V2 from './src/Download_V2';
+import DownloadResources from './src/DownloadResources';
 
-export {
-  Download,
-  DownloadResume,
-  DownloadResources,
-  downloadRes,
-  getOfflineContent
-};
+export { Download_V2, DownloadResources };
 export const videoMock = {
   id: 263378,
   slug: 'introduction',
@@ -137,7 +130,7 @@ export const videoMock = {
     }
   ],
   user_progress: {
-    '149628': {
+    149628: {
       id: 9285216,
       content_id: 263378,
       user_id: 149628,
@@ -150,7 +143,7 @@ export const videoMock = {
   completed: false,
   started: true,
   progress_percent: 0,
-  user_playlists: { '149628': [] },
+  user_playlists: { 149628: [] },
   is_added_to_primary_playlist: false,
   published_on_in_timezone: {
     date: '2020-07-25 08:00:00.000000',
@@ -343,7 +336,7 @@ export const videoMock = {
     child_ids: [263378],
     position: 1,
     user_progress: {
-      '149628': {
+      149628: {
         id: 9285217,
         content_id: 262502,
         user_id: 149628,
@@ -356,7 +349,7 @@ export const videoMock = {
     completed: false,
     started: true,
     progress_percent: 0,
-    user_playlists: { '149628': [] },
+    user_playlists: { 149628: [] },
     is_added_to_primary_playlist: false,
     published_on_in_timezone: {
       date: '2020-07-25 08:00:00.000000',
@@ -365,7 +358,7 @@ export const videoMock = {
     },
     is_new: false,
     resources: {
-      '1': {
+      1: {
         resource_id: 142684,
         resource_name: 'Course Resources Folder',
         resource_url:
@@ -509,7 +502,7 @@ export const videoMock = {
         child_ids: [263378],
         position: 1,
         user_progress: {
-          '149628': {
+          149628: {
             id: 9285216,
             content_id: 263378,
             user_id: 149628,
@@ -522,7 +515,7 @@ export const videoMock = {
         completed: false,
         started: true,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -684,11 +677,11 @@ export const videoMock = {
         ],
         child_ids: [263379],
         position: 2,
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -697,7 +690,7 @@ export const videoMock = {
         },
         is_new: false,
         resources: {
-          '1': {
+          1: {
             resource_id: 142661,
             resource_name: 'PDF Sheet Music',
             resource_url:
@@ -774,11 +767,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:23:25.000000',
@@ -959,11 +952,11 @@ export const videoMock = {
         ],
         child_ids: [263380],
         position: 3,
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -972,7 +965,7 @@ export const videoMock = {
         },
         is_new: false,
         resources: {
-          '1': {
+          1: {
             resource_id: 142663,
             resource_name: 'PDF Sheet Music',
             resource_url:
@@ -1049,11 +1042,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:25:12.000000',
@@ -1254,11 +1247,11 @@ export const videoMock = {
         ],
         child_ids: [263381],
         position: 4,
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -1267,7 +1260,7 @@ export const videoMock = {
         },
         is_new: false,
         resources: {
-          '1': {
+          1: {
             resource_id: 142665,
             resource_name: 'PDF Sheet Music',
             resource_url:
@@ -1355,11 +1348,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:31:36.000000',
@@ -1446,11 +1439,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:32:01.000000',
@@ -1623,11 +1616,11 @@ export const videoMock = {
         ],
         child_ids: [263382],
         position: 5,
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -1636,7 +1629,7 @@ export const videoMock = {
         },
         is_new: false,
         resources: {
-          '1': {
+          1: {
             resource_id: 142667,
             resource_name: 'PDF Sheet Music',
             resource_url:
@@ -1713,11 +1706,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:39:29.000000',
@@ -1897,11 +1890,11 @@ export const videoMock = {
         ],
         child_ids: [263383],
         position: 6,
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 08:00:00.000000',
@@ -1910,7 +1903,7 @@ export const videoMock = {
         },
         is_new: false,
         resources: {
-          '1': {
+          1: {
             resource_id: 142669,
             resource_name: 'PDF Sheet Music',
             resource_url:
@@ -1987,11 +1980,11 @@ export const videoMock = {
               }
             ],
             permissions: [],
-            user_progress: { '149628': [] },
+            user_progress: { 149628: [] },
             completed: false,
             started: false,
             progress_percent: 0,
-            user_playlists: { '149628': [] },
+            user_playlists: { 149628: [] },
             is_added_to_primary_playlist: false,
             published_on_in_timezone: {
               date: '2020-07-25 07:44:58.000000',
@@ -2158,11 +2151,11 @@ export const videoMock = {
       ],
       child_ids: [263379],
       position: 2,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -2171,7 +2164,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142661,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -2248,11 +2241,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:23:25.000000',
@@ -2417,11 +2410,11 @@ export const videoMock = {
       ],
       child_ids: [263379],
       position: 2,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -2430,7 +2423,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142661,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -2507,11 +2500,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:23:25.000000',
@@ -2678,11 +2671,11 @@ export const videoMock = {
     ],
     child_ids: [263379],
     position: 2,
-    user_progress: { '149628': [] },
+    user_progress: { 149628: [] },
     completed: false,
     started: false,
     progress_percent: 0,
-    user_playlists: { '149628': [] },
+    user_playlists: { 149628: [] },
     is_added_to_primary_playlist: false,
     published_on_in_timezone: {
       date: '2020-07-25 08:00:00.000000',
@@ -2691,7 +2684,7 @@ export const videoMock = {
     },
     is_new: false,
     resources: {
-      '1': {
+      1: {
         resource_id: 142661,
         resource_name: 'PDF Sheet Music',
         resource_url:
@@ -2768,11 +2761,11 @@ export const videoMock = {
           }
         ],
         permissions: [],
-        user_progress: { '149628': [] },
+        user_progress: { 149628: [] },
         completed: false,
         started: false,
         progress_percent: 0,
-        user_playlists: { '149628': [] },
+        user_playlists: { 149628: [] },
         is_added_to_primary_playlist: false,
         published_on_in_timezone: {
           date: '2020-07-25 07:23:25.000000',
@@ -2925,7 +2918,7 @@ export const videoMock = {
       child_ids: [263378],
       position: 1,
       user_progress: {
-        '149628': {
+        149628: {
           id: 9285216,
           content_id: 263378,
           user_id: 149628,
@@ -2938,7 +2931,7 @@ export const videoMock = {
       completed: false,
       started: true,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -3100,11 +3093,11 @@ export const videoMock = {
       ],
       child_ids: [263379],
       position: 2,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -3113,7 +3106,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142661,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -3190,11 +3183,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:23:25.000000',
@@ -3375,11 +3368,11 @@ export const videoMock = {
       ],
       child_ids: [263380],
       position: 3,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -3388,7 +3381,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142663,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -3465,11 +3458,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:25:12.000000',
@@ -3670,11 +3663,11 @@ export const videoMock = {
       ],
       child_ids: [263381],
       position: 4,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -3683,7 +3676,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142665,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -3771,11 +3764,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:31:36.000000',
@@ -3862,11 +3855,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:32:01.000000',
@@ -4039,11 +4032,11 @@ export const videoMock = {
       ],
       child_ids: [263382],
       position: 5,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -4052,7 +4045,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142667,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -4129,11 +4122,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:39:29.000000',
@@ -4313,11 +4306,11 @@ export const videoMock = {
       ],
       child_ids: [263383],
       position: 6,
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-25 08:00:00.000000',
@@ -4326,7 +4319,7 @@ export const videoMock = {
       },
       is_new: false,
       resources: {
-        '1': {
+        1: {
           resource_id: 142669,
           resource_name: 'PDF Sheet Music',
           resource_url:
@@ -4403,11 +4396,11 @@ export const videoMock = {
             }
           ],
           permissions: [],
-          user_progress: { '149628': [] },
+          user_progress: { 149628: [] },
           completed: false,
           started: false,
           progress_percent: 0,
-          user_playlists: { '149628': [] },
+          user_playlists: { 149628: [] },
           is_added_to_primary_playlist: false,
           published_on_in_timezone: {
             date: '2020-07-25 07:44:58.000000',
@@ -4876,11 +4869,11 @@ export const mp3VideoMock = {
       name: 'Drumeo Edge'
     }
   ],
-  user_progress: { '149628': [] },
+  user_progress: { 149628: [] },
   completed: false,
   started: false,
   progress_percent: 0,
-  user_playlists: { '149628': [] },
+  user_playlists: { 149628: [] },
   is_added_to_primary_playlist: false,
   published_on_in_timezone: {
     date: '2020-02-28 08:00:00.000000',
@@ -4947,11 +4940,11 @@ export const mp3VideoMock = {
         }
       ],
       permissions: [],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-02-28 04:17:16.000000',
@@ -5345,11 +5338,11 @@ export const mp3VideoMock = {
         name: 'Drumeo Edge'
       }
     ],
-    user_progress: { '149628': [] },
+    user_progress: { 149628: [] },
     completed: false,
     started: false,
     progress_percent: 0,
-    user_playlists: { '149628': [] },
+    user_playlists: { 149628: [] },
     is_added_to_primary_playlist: false,
     published_on_in_timezone: {
       date: '2020-02-21 08:00:00.000000',
@@ -5728,11 +5721,11 @@ export const mp3VideoMock = {
         name: 'Drumeo Edge'
       }
     ],
-    user_progress: { '149628': [] },
+    user_progress: { 149628: [] },
     completed: false,
     started: false,
     progress_percent: 0,
-    user_playlists: { '149628': [] },
+    user_playlists: { 149628: [] },
     is_added_to_primary_playlist: false,
     published_on_in_timezone: {
       date: '2020-03-07 08:00:00.000000',
@@ -6080,11 +6073,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-18 08:00:00.000000',
@@ -6183,11 +6176,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-07-10 08:00:00.000000',
@@ -6511,11 +6504,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-06-19 08:00:00.000000',
@@ -6854,11 +6847,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-05-29 08:00:00.000000',
@@ -7198,7 +7191,7 @@ export const mp3VideoMock = {
         }
       ],
       user_progress: {
-        '149628': {
+        149628: {
           id: 9285203,
           content_id: 254179,
           user_id: 149628,
@@ -7211,7 +7204,7 @@ export const mp3VideoMock = {
       completed: false,
       started: true,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-05-22 08:00:00.000000',
@@ -7558,11 +7551,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-05-15 08:00:00.000000',
@@ -7909,11 +7902,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-05-08 08:00:00.000000',
@@ -8332,11 +8325,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-04-17 08:00:00.000000',
@@ -8707,11 +8700,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-03-27 10:00:00.000000',
@@ -9090,11 +9083,11 @@ export const mp3VideoMock = {
           name: 'Drumeo Edge'
         }
       ],
-      user_progress: { '149628': [] },
+      user_progress: { 149628: [] },
       completed: false,
       started: false,
       progress_percent: 0,
-      user_playlists: { '149628': [] },
+      user_playlists: { 149628: [] },
       is_added_to_primary_playlist: false,
       published_on_in_timezone: {
         date: '2020-03-07 08:00:00.000000',
