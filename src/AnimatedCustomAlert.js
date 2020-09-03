@@ -15,14 +15,10 @@ export default class AnimatedCustomAlert extends React.PureComponent {
     opacity: new Animated.Value(0)
   };
 
-  constructor(props) {
-    super(props);
-  }
-
   toggle = (title, message) => {
-    this.title = title || 'Unknown';
-    this.message = message || '';
-    if (this.state.visible && this.props.onClose) this.props.onClose();
+    this.title = title;
+    this.message = message;
+    if (this.state.visible) this.props.onClose?.();
     this.setState(state => ({ visible: !state.visible }));
   };
 
@@ -46,9 +42,9 @@ export default class AnimatedCustomAlert extends React.PureComponent {
         supportedOrientations={['portrait', 'landscape']}
       >
         <TouchableOpacity
+          onPress={this.toggle}
           testID='modalBackground'
           style={styles.modalBackground}
-          onPress={() => this.toggle()}
         >
           <Animated.View
             style={[
@@ -113,7 +109,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
                 DELETE
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity testID='cancelBtn' onPress={() => this.toggle()}>
+            <TouchableOpacity testID='cancelBtn' onPress={this.toggle}>
               <Text
                 maxFontSizeMultiplier={this.props.maxFontMultiplier}
                 style={{
