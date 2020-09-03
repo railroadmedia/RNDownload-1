@@ -175,12 +175,7 @@ export default class Download_V2 extends React.PureComponent {
 
   deref = async () => {
     let lesson = await this.props.entity.lesson;
-    let overview = (await this.props.entity.overview)?.data[0];
-    // overview.lessons = [
-    //   overview.lessons[0],
-    //   overview.lessons[1],
-    //   overview.lessons[6]
-    // ];
+    let overview = await this.props.entity.overview;
     let { comments } = this.props.entity;
     offlineContent[this.id] = {
       dlded: [],
@@ -764,3 +759,4 @@ const handleOldOfflineFormat = () => {
     }
   });
 };
+export { offlineContent };

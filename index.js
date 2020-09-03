@@ -1,7 +1,7 @@
-import Download_V2 from './src/Download_V2';
+import Download_V2, { offlineContent } from './src/Download_V2';
 import DownloadResources from './src/DownloadResources';
 
-export { Download_V2, DownloadResources };
+export { Download_V2, DownloadResources, offlineContent };
 export const videoMock = {
   id: 263378,
   slug: 'introduction',
