@@ -548,11 +548,13 @@ const done = function (oc, taskId, dlding) {
   dldingToDlded(oc);
   setOfflineContent();
   if (!oc.dlding.length) this?.setState?.({ status: 'Downloaded' });
-  if (oc.fileSizes.largestFile === taskId)
+  if (oc.fileSizes.largestFile === taskId) {
+    this?.props?.onDone?.();
     DeviceEventEmitter.emit('dldProgress', {
       val: 1,
       id: taskId
     });
+  }
 };
 
 const getOfflineContent = () =>
@@ -652,7 +654,9 @@ const deleteLesson = function (id, taskId) {
   let toBeDeleted = filterToBeDeleted(
     oc?.dlded.concat(oc?.dlding.map(d => d.destination))
   );
-  offlineFiles = offlineFiles.filter(of => !toBeDeleted.includes(of));
+  offlineFiles = offlineFiles.filter(
+    of => !toBeDeleted.some(tbd => tbd.includes(of))
+  );
   toBeDeleted.map(tbd => {
     RNFetchBlob.fs.unlink(tbd).catch(() => {});
     this.tasks?.map(t => {
