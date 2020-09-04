@@ -127,7 +127,7 @@ export default class Download_V2 extends React.PureComponent {
               ?.begin(expectedBytes =>
                 handleLessonSize(oc, task.id, expectedBytes)
               )
-              ?.progress(p => progress(p, oc, task.id, dlding))
+              ?.progress(p => progress(p, oc, task, dlding))
               ?.done(() => done(oc, task.id, dlding))
               ?.error(e => {
                 if (e.includes('No such file or directory'))
@@ -136,7 +136,7 @@ export default class Download_V2 extends React.PureComponent {
                     .then(restart)
                     .catch(restart);
                 if (e.includes('No space left on device')) {
-                  deleteLesson(oc.id, task.id);
+                  deleteLesson(oc.id);
                   Alert.alert(
                     `Error while downloading ${
                       oc.lesson?.fields?.find(f => f.key === 'title')?.value
@@ -162,7 +162,7 @@ export default class Download_V2 extends React.PureComponent {
     if (state === 'active') {
       let oc = offlineContent[this.id];
       let largestDld = this.tasks.find(t => t.id === oc.fileSizes.largestFile);
-      largestDld?.progress(p => progress.call(this, p, oc, largestDld.id));
+      largestDld?.progress(p => progress.call(this, p, oc, largestDld));
     }
   };
 
@@ -236,7 +236,7 @@ export default class Download_V2 extends React.PureComponent {
         );
         let task = this.tasks.find(ad => oc.fileSizes.largestFile === ad.id);
         task
-          ?.progress(p => progress.call(this, p, oc, task.id))
+          ?.progress(p => progress.call(this, p, oc, task))
           ?.done(() => done.call(this, oc, task.id));
       } else {
         this.setState({ status: 'Downloaded' });
@@ -404,7 +404,7 @@ export default class Download_V2 extends React.PureComponent {
       let resume = () => {
         task
           .begin(expectedBytes => handleLessonSize(oc, taskId, expectedBytes))
-          .progress(p => progress.call(this, p, oc, taskId))
+          .progress(p => progress.call(this, p, oc, task))
           .done(() => {
             done(oc, taskId);
             res(`${path}/${taskId}`);
@@ -420,7 +420,7 @@ export default class Download_V2 extends React.PureComponent {
                 offlineContent[this.id]?.overview ||
                 offlineContent[this.id]?.lesson
               )?.fields?.find(f => f.key === 'title')?.value;
-              deleteLesson.call(this, this.id, taskId);
+              deleteLesson.call(this, this.id);
               Alert.alert(
                 `Error while downloading ${title}`,
                 'There is insufficient storage space on your device. Please free up some space and try again.',
@@ -446,7 +446,10 @@ export default class Download_V2 extends React.PureComponent {
     return (
       <>
         <TouchableOpacity
-          style={[propStyle?.touchable, { alignItems: 'center' }]}
+          style={[
+            propStyle?.touchable,
+            { alignItems: 'center', justifyContent: 'space-around' }
+          ]}
           onPress={
             status === 'Download'
               ? this.download
@@ -471,6 +474,7 @@ export default class Download_V2 extends React.PureComponent {
             <ActivityIndicator color='red' size={'small'} animating={true} />
           )}
           <View
+            style={propStyle?.textStatus ? {} : { width: iconStyle.width }}
             onLayout={({
               nativeEvent: {
                 layout: { width }
@@ -529,12 +533,12 @@ export default class Download_V2 extends React.PureComponent {
   }
 }
 
-const progress = function (p, oc, taskId, dlding) {
+const progress = function (p, oc, task, dlding) {
   fetchExpectedBytes(oc, dlding);
-  if (oc.fileSizes.largestFile === taskId) {
+  if (oc.fileSizes.largestFile === task.id && task.state !== 'STOPPED') {
     DeviceEventEmitter.emit('dldProgress', {
       val: p,
-      id: taskId
+      id: task.id
     });
     this?.progressTranslateX?.setValue?.(-this?.progressWidth * (1 - p));
   }
@@ -631,12 +635,7 @@ const fetchExpectedBytes = (oc, dlding) => {
   }
 };
 
-const deleteLesson = function (id, taskId) {
-  if (taskId)
-    DeviceEventEmitter.emit('dldProgress', {
-      val: 1,
-      id: taskId
-    });
+const deleteLesson = function (id) {
   let oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc =>
@@ -661,14 +660,19 @@ const deleteLesson = function (id, taskId) {
     RNFetchBlob.fs.unlink(tbd).catch(() => {});
     this.tasks?.map(t => {
       if (t.id === tbd.split('/').pop()) {
-        delete progresses[t.id];
         t.stop();
         allDownloads = allDownloads.filter(ad => ad.id !== t.id);
       }
     });
   });
   if (this.tasks) this.tasks = [];
+  let taskId = offlineContent[id].fileSizes.largestFile;
   delete offlineContent?.[oc.id];
+  if (taskId)
+    DeviceEventEmitter.emit('dldProgress', {
+      val: 1,
+      id: taskId
+    });
   setOfflineContent();
 };
 
