@@ -137,10 +137,11 @@ export default class Download_V2 extends React.PureComponent {
                     .catch(restart);
                 if (e.includes('No space left on device')) {
                   deleteLesson(oc.id);
+                  let title = (oc?.overview || oc.lesson)?.fields?.find(
+                    f => f.key === 'title'
+                  )?.value;
                   Alert.alert(
-                    `Error while downloading ${
-                      oc.lesson?.fields?.find(f => f.key === 'title')?.value
-                    }`,
+                    `Error while downloading ${title}`,
                     'There is insufficient storage space on your device. Please free up some space and try again.',
                     [{ text: 'OK' }],
                     { cancelable: false }
@@ -177,6 +178,15 @@ export default class Download_V2 extends React.PureComponent {
     let lesson = await this.props.entity.lesson;
     let overview = await this.props.entity.overview;
     let { comments } = this.props.entity;
+    if (!lesson && !overview) {
+      this.setState({ status: 'Download' });
+      return Alert.alert(
+        `Oh no, we dropped a stick...`,
+        'Drumeo is down, we are working on a fix and it should be back shortly, thank you for your patience.',
+        [{ text: 'OK' }],
+        { cancelable: false }
+      );
+    }
     offlineContent[this.id] = {
       dlded: [],
       dlding: [],
@@ -220,6 +230,7 @@ export default class Download_V2 extends React.PureComponent {
         data: [{ ...overview.data.find(d => d.key === 'thumbnail_url') }],
         lessons: overview.lessons.map(l => derefLesson(l))
       };
+    return true;
   };
 
   resumeThis = () => {
@@ -248,54 +259,17 @@ export default class Download_V2 extends React.PureComponent {
 
   download = async () => {
     this.setState({ status: 'Downloading' });
-    await this.deref();
+    if (!(await this.deref())) return;
     let lessons = offlineContent[this.id].overview?.lessons || [
       offlineContent[this.id].lesson
     ];
     let promises = lessons
       .map(l => this.downloadVideo(l))
       .concat(lessons.map(l => this.downloadThumb(l)))
-      .concat(
-        lessons
-          .reduce((a, b) => ({ resources: a.resources.concat(b.resources) }), {
-            resources: []
-          })
-          .resources.map(r => this.downloadResource(r))
-      )
-      .concat(
-        lessons
-          .reduce(
-            (a, b) => ({
-              assignments: a.assignments.concat(b.assignments || [])
-            }),
-            { assignments: [] }
-          )
-          .assignments.filter(a =>
-            a.data.some(d => d.key === 'sheet_music_image_url')
-          )
-          .map(a => a.data.find(d => d.key === 'sheet_music_image_url'))
-          .map(a => this.downloadAssignment(a))
-      )
-      .concat(
-        lessons
-          .reduce(
-            (a, b) => ({
-              related_lessons: a.related_lessons.concat(b.related_lessons)
-            }),
-            { related_lessons: [] }
-          )
-          .related_lessons.map(rl =>
-            rl.data.find(d => d.key === 'thumbnail_url')
-          )
-          .map(rl => this.downloadRelatedThumb(rl))
-      )
-      .concat(
-        lessons
-          .reduce((a, b) => ({ comments: a.comments.concat(b.comments) }), {
-            comments: []
-          })
-          .comments.map(c => this.downloadCommentUserProfile(c))
-      );
+      .concat(this.downloadResource(lessons))
+      .concat(this.downloadAssignment(lessons))
+      .concat(this.downloadRelatedThumb(lessons))
+      .concat(this.downloadCommentUserProfile(lessons));
     if (offlineContent[this.id].overview)
       promises.push(this.downloadThumb(offlineContent[this.id].overview));
     Promise.all(promises).then(() => {
@@ -315,16 +289,30 @@ export default class Download_V2 extends React.PureComponent {
       });
     });
 
-  downloadAssignment = assignment =>
-    new Promise(res => {
-      let extension = assignment.value.split('.').pop();
-      let url = assignment.value;
-      let id = `${assignment.id}.${extension}`;
-      this.downloadItem(id, url, securedPath).then(value => {
-        assignment.value = value;
-        res();
-      });
-    });
+  downloadAssignment = lessons =>
+    lessons
+      .reduce(
+        (a, b) => ({
+          assignments: a.assignments.concat(b.assignments || [])
+        }),
+        { assignments: [] }
+      )
+      .assignments.filter(a =>
+        a.data.some(d => d.key === 'sheet_music_image_url')
+      )
+      .map(a => a.data.find(d => d.key === 'sheet_music_image_url'))
+      .map(
+        a =>
+          new Promise(res => {
+            let extension = a.value.split('.').pop();
+            let url = a.value;
+            let id = `${a.id}.${extension}`;
+            this.downloadItem(id, url, securedPath).then(value => {
+              a.value = value;
+              res();
+            });
+          })
+      );
 
   downloadThumb = lesson =>
     new Promise(res => {
@@ -338,40 +326,74 @@ export default class Download_V2 extends React.PureComponent {
       });
     });
 
-  downloadRelatedThumb = thumb =>
-    new Promise(res => {
-      let extension = thumb.value.split('.').pop();
-      let url = thumb.value;
-      let id = `${thumb.id}.${extension}`;
-      this.downloadItem(id, url, securedPath).then(value => {
-        thumb.value = value;
-        res();
-      });
-    });
+  downloadRelatedThumb = lessons =>
+    lessons
+      .reduce(
+        (a, b) => ({
+          related_lessons: a.related_lessons.concat(b.related_lessons)
+        }),
+        { related_lessons: [] }
+      )
+      .related_lessons.map(rl => rl.data.find(d => d.key === 'thumbnail_url'))
+      .map(
+        thumb =>
+          new Promise(res => {
+            let extension = thumb.value.split('.').pop();
+            let url = thumb.value;
+            let id = `${thumb.id}.${extension}`;
+            this.downloadItem(id, url, securedPath).then(value => {
+              thumb.value = value;
+              res();
+            });
+          })
+      );
 
-  downloadCommentUserProfile = comment =>
-    new Promise(res => {
-      let extension = comment.user['fields.profile_picture_image_url']
-        .split('.')
-        .pop();
-      let url = comment.user['fields.profile_picture_image_url'];
-      let id = `${comment.user.id}.${extension}`;
-      this.downloadItem(id, url, securedPath).then(value => {
-        comment.user['fields.profile_picture_image_url'] = value;
-        res();
-      });
-    });
+  downloadCommentUserProfile = lessons =>
+    lessons
+      .reduce((a, b) => ({ comments: a.comments.concat(b.comments) }), {
+        comments: []
+      })
+      .comments.map(
+        c =>
+          new Promise(res => {
+            let extension = c.user['fields.profile_picture_image_url']
+              .split('.')
+              .pop();
+            let url = c.user['fields.profile_picture_image_url'];
+            let id = `${c.user.id}.${extension}`;
+            this.downloadItem(id, url, securedPath).then(value => {
+              c.user['fields.profile_picture_image_url'] = value;
+              res();
+            });
+          })
+      );
 
-  downloadResource = resource =>
-    new Promise(res => {
-      let extension = resource.resource_url.split('.').pop();
-      let url = resource.resource_url;
-      let id = `${resource.resource_id}.${extension}`;
-      this.downloadItem(id, url, publicPath).then(resource_url => {
-        resource.resource_url = resource_url;
-        res();
-      });
-    });
+  downloadResource = lessons =>
+    lessons
+      .map(l => ({
+        ...l,
+        resources: l.resources.map(r => {
+          r.title = l.fields.find(f => f.key === 'title')?.value;
+          return r;
+        })
+      }))
+      .reduce((a, b) => ({ resources: a.resources.concat(b.resources) }), {
+        resources: []
+      })
+      .resources.map(
+        r =>
+          new Promise(res => {
+            let extension = r.resource_url.split('.').pop();
+            let url = r.resource_url;
+            let id = `${r.resource_id}.${extension}`;
+            this.downloadItem(id, url, `${publicPath}/${r.title || ''}`).then(
+              resource_url => {
+                r.resource_url = resource_url;
+                res();
+              }
+            );
+          })
+      );
 
   downloadItem = (taskId, url, path) =>
     new Promise(res => {
@@ -657,13 +679,18 @@ const deleteLesson = function (id) {
     of => !toBeDeleted.some(tbd => tbd.includes(of))
   );
   toBeDeleted.map(tbd => {
-    RNFetchBlob.fs.unlink(tbd).catch(() => {});
     this.tasks?.map(t => {
       if (t.id === tbd.split('/').pop()) {
         t.stop();
         allDownloads = allDownloads.filter(ad => ad.id !== t.id);
       }
     });
+    if (tbd.includes(publicPath)) {
+      tbd = tbd.split('/');
+      tbd.pop();
+      tbd = tbd.join('/');
+    }
+    return RNFetchBlob.fs.unlink(tbd).catch(() => {});
   });
   if (this.tasks) this.tasks = [];
   let taskId = offlineContent[id].fileSizes.largestFile;
