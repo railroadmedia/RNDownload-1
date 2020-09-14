@@ -4,6 +4,7 @@ import {
   View,
   Text,
   Alert,
+  Platform,
   Animated,
   AppState,
   Dimensions,
@@ -31,6 +32,7 @@ let { width, height } = Dimensions.get('screen');
 width = width < height ? width : height;
 
 const pixR = PixelRatio.get();
+const isiOS = Platform.OS === 'ios';
 
 export default class Download_V2 extends React.PureComponent {
   id = '';
@@ -46,8 +48,10 @@ export default class Download_V2 extends React.PureComponent {
     super(props);
 
     publicPath = props.publicPath || RNFetchBlob.fs.dirs.DocumentDir;
-    securedPath = props.securedPath || RNFetchBlob.fs.dirs.LibraryDir;
-
+    securedPath =
+      props.securedPath ||
+      RNFetchBlob.fs.dirs.LibraryDir ||
+      RNFetchBlob.fs.dirs.DocumentDir;
     this.id = props.entity.id;
   }
 
@@ -88,7 +92,8 @@ export default class Download_V2 extends React.PureComponent {
   }
 
   static async resumeAll(
-    securedP = RNFetchBlob.fs.dirs.LibraryDir,
+    securedP = RNFetchBlob.fs.dirs.LibraryDir ||
+      RNFetchBlob.fs.dirs.DocumentDir,
     publicP = RNFetchBlob.fs.dirs.DocumentDir
   ) {
     publicPath = publicP;
@@ -209,7 +214,7 @@ export default class Download_V2 extends React.PureComponent {
       })),
       assignments: lesson.assignments?.map(a => ({
         ...a,
-        data: a.data.map(d => ({
+        data: a.data?.map(d => ({
           ...d
         }))
       })),
@@ -298,7 +303,7 @@ export default class Download_V2 extends React.PureComponent {
         { assignments: [] }
       )
       .assignments.filter(a =>
-        a.data.some(d => d.key === 'sheet_music_image_url')
+        a.data?.some(d => d.key === 'sheet_music_image_url')
       )
       .map(a => a.data.find(d => d.key === 'sheet_music_image_url'))
       .map(
@@ -357,14 +362,16 @@ export default class Download_V2 extends React.PureComponent {
         c =>
           new Promise(res => {
             let extension = c.user['fields.profile_picture_image_url']
-              .split('.')
-              .pop();
+              ?.split('.')
+              ?.pop();
             let url = c.user['fields.profile_picture_image_url'];
             let id = `${c.user.id}.${extension}`;
-            this.downloadItem(id, url, securedPath).then(value => {
-              c.user['fields.profile_picture_image_url'] = value;
-              res();
-            });
+            if (id && url)
+              this.downloadItem(id, url, securedPath).then(value => {
+                c.user['fields.profile_picture_image_url'] = value;
+                res();
+              });
+            else res();
           })
       );
 
@@ -398,7 +405,7 @@ export default class Download_V2 extends React.PureComponent {
   downloadItem = (taskId, url, path) =>
     new Promise(res => {
       if (this.tasks.find(t => t.id === `${taskId}`))
-        return res(`${path}/${taskId}`);
+        return res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
       let oc = offlineContent[this.id];
       oc.dlding.push({
         url,
@@ -429,7 +436,7 @@ export default class Download_V2 extends React.PureComponent {
           .progress(p => progress.call(this, p, oc, task))
           .done(() => {
             done(oc, taskId);
-            res(`${path}/${taskId}`);
+            res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
           })
           .error(e => {
             if (e.includes('No such file or directory'))
@@ -638,7 +645,9 @@ const handleLessonSize = (oc, taskId, bytes) => {
   oc.sizeInBytes += bytes;
   oc.fileSizes[taskId] = bytes;
   let sizes = Object.keys(oc.fileSizes);
-  if (sizes.length === oc.dlding.length + oc.dlded.length)
+  if (sizes.includes('largestFile'))
+    sizes.splice(sizes.indexOf('largestFile'), 1);
+  if (sizes.some(s => s.includes('Video')))
     oc.fileSizes.largestFile = sizes.reduce((a, b) =>
       oc.fileSizes[a] > oc.fileSizes[b] ? a : b
     );
