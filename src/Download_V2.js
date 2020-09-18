@@ -500,7 +500,11 @@ export default class Download_V2 extends React.PureComponent {
           ) : status === 'Downloading' ? (
             stopDownload(iconStyle)
           ) : (
-            <ActivityIndicator color='red' size={'small'} animating={true} />
+            <ActivityIndicator
+              size={'small'}
+              animating={true}
+              color={propStyle?.activityIndicatorColor || 'black'}
+            />
           )}
           <View
             style={propStyle?.textStatus ? {} : { width: iconStyle.width }}
@@ -526,8 +530,9 @@ export default class Download_V2 extends React.PureComponent {
               <Animated.View
                 style={{
                   flex: 1,
-                  backgroundColor: 'red',
-                  transform: [{ translateX: this.progressTranslateX }]
+                  transform: [{ translateX: this.progressTranslateX }],
+                  backgroundColor:
+                    propStyle?.animatedProgressBackground || 'black'
                 }}
               />
             </View>
@@ -540,21 +545,23 @@ export default class Download_V2 extends React.PureComponent {
           }}
           ref={r => (this.alert = r)}
           styles={{
-            background: propStyle?.alertBackground,
-            textTitleColor: propStyle?.alertTextTitleColor,
-            textMessageColor: propStyle?.alertTextMessageColor,
-            textTitleFontFamily: propStyle?.alertTextTitleFontFamily,
-            textMessageFontFamily: propStyle?.alertTextMessageFontFamily,
-            touchableTextDeleteColor: propStyle?.alertTouchableTextDeleteColor,
-            touchableTextCancelColor: propStyle?.alertTouchableTextCancelColor,
+            background: propStyle?.alert?.alertBackground,
+            textTitleColor: propStyle?.alert?.alertTextTitleColor,
+            textMessageColor: propStyle?.alert?.alertTextMessageColor,
+            textTitleFontFamily: propStyle?.alert?.alertTextTitleFontFamily,
+            textMessageFontFamily: propStyle?.alert?.alertTextMessageFontFamily,
+            touchableTextDeleteColor:
+              propStyle?.alert?.alertTouchableTextDeleteColor,
+            touchableTextCancelColor:
+              propStyle?.alert?.alertTouchableTextCancelColor,
             touchableDeleteBackground:
-              propStyle?.alertTouchableDeleteBackground,
+              propStyle?.alert?.alertTouchableDeleteBackground,
             touchableDeleteBorderColor:
-              propStyle?.alertTouchableDeleteBorderColor,
+              propStyle?.alert?.alertTouchableDeleteBorderColor,
             touchableTextDeleteFontFamily:
-              propStyle?.alertTouchableTextDeleteFontFamily,
+              propStyle?.alert?.alertTouchableTextDeleteFontFamily,
             touchableTextCancelFontFamily:
-              propStyle?.alertTouchableTextCancelFontFamily
+              propStyle?.alert?.alertTouchableTextCancelFontFamily
           }}
         />
       </>
