@@ -203,7 +203,6 @@ export default class Download_V2 extends React.PureComponent {
       ...lesson,
       video_playback_endpoints: [
         {
-          id: lesson.id,
           ...this.hd720OrHighestVideo(lesson.video_playback_endpoints)
         }
       ],
@@ -250,10 +249,11 @@ export default class Download_V2 extends React.PureComponent {
         this.tasks = allDownloads.filter(ad =>
           oc.dlding.some(d => d.id === ad.id)
         );
-        let task = this.tasks.find(ad => oc.fileSizes.largestFile === ad.id);
-        task
-          ?.progress(p => progress.call(this, p, oc, task))
-          ?.done(() => done.call(this, oc, task.id));
+        this.tasks.map(task => {
+          if (oc.fileSizes.largestFile === task.id)
+            task?.progress(p => progress.call(this, p, oc, task));
+          task?.done(() => done.call(this, oc, task.id));
+        });
       } else {
         this.setState({ status: 'Downloaded' });
       }
@@ -287,7 +287,7 @@ export default class Download_V2 extends React.PureComponent {
   downloadVideo = lesson =>
     new Promise(res => {
       let url = lesson.video_playback_endpoints[0].file;
-      let id = `${lesson.video_playback_endpoints[0].id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
+      let id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
       this.downloadItem(id, url, securedPath).then(file => {
         lesson.video_playback_endpoints[0].file = file;
         res();
@@ -365,7 +365,7 @@ export default class Download_V2 extends React.PureComponent {
               ?.split('.')
               ?.pop();
             let url = c.user['fields.profile_picture_image_url'];
-            let id = `${c.user.id}.${extension}`;
+            let id = `${c.user_id}.${extension}`;
             if (id && url)
               this.downloadItem(id, url, securedPath).then(value => {
                 c.user['fields.profile_picture_image_url'] = value;
@@ -586,15 +586,46 @@ const done = function (oc, taskId, dlding) {
   delete progresses[taskId];
   offlineFiles.push(taskId);
   dldingToDlded(oc);
+  manageOfflinePath(oc);
   setOfflineContent();
-  if (!oc.dlding.length) this?.setState?.({ status: 'Downloaded' });
-  if (oc.fileSizes.largestFile === taskId) {
+  if (!oc.dlding.length) {
     this?.props?.onDone?.();
+    this?.setState?.({ status: 'Downloaded' });
+  }
+  if (oc.fileSizes.largestFile === taskId)
     DeviceEventEmitter.emit('dldProgress', {
       val: 1,
       id: taskId
     });
-  }
+};
+
+const manageOfflinePath = oc => {
+  let of = offlineFiles;
+  let sp = `${isiOS ? '' : 'file://'}${securedPath}`;
+  if (of.find(o => o.includes(`${oc.lesson.id}Video`)))
+    oc.lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
+      o.includes(`${oc.lesson.id}Video`)
+    )}`;
+  if (of.find(o => o.includes(oc.lesson.data[0].id)))
+    oc.lesson.data[0].value = `${sp}/${of.find(o =>
+      o.includes(oc.lesson.data[0].id)
+    )}`;
+  oc.lesson.related_lessons?.map(rl => {
+    if (of.find(o => o.includes(rl.data[0].id)))
+      rl.data[0].value = `${sp}/${of.find(o => o.includes(rl.data[0].id))}`;
+  });
+  oc.lesson.assignments?.map(a => {
+    a.data.map(d => {
+      if (of.find(o => o.includes(d.id)))
+        d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
+    });
+  });
+  oc.lesson.comments?.map(c => {
+    if (of.find(o => o.includes(c.user_id)))
+      c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
+        o.includes(c.user_id)
+      )}`;
+  });
 };
 
 const getOfflineContent = () =>
