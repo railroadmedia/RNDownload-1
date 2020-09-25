@@ -556,12 +556,12 @@ export default class Download_V2 extends React.PureComponent {
               propStyle?.alert?.alertTouchableTextCancelColor,
             touchableDeleteBackground:
               propStyle?.alert?.alertTouchableDeleteBackground,
-            touchableDeleteBorderColor:
-              propStyle?.alert?.alertTouchableDeleteBorderColor,
             touchableTextDeleteFontFamily:
               propStyle?.alert?.alertTouchableTextDeleteFontFamily,
             touchableTextCancelFontFamily:
-              propStyle?.alert?.alertTouchableTextCancelFontFamily
+              propStyle?.alert?.alertTouchableTextCancelFontFamily,
+            touchableDeleteBorderColor:
+              propStyle?.alert?.alertTouchableDeleteBorderColor || 'transparent'
           }}
         />
       </>
