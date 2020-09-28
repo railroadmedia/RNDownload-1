@@ -314,6 +314,16 @@ export default class Download_V2 extends React.PureComponent {
             let id = `${a.id}.${extension}`;
             this.downloadItem(id, url, securedPath).then(value => {
               a.value = value;
+              RNFetchBlob.fs
+                .readFile(a.value)
+                .then(result => {
+                  let vb = result
+                    ?.split('viewBox="')?.[1]
+                    ?.split('"')?.[0]
+                    .split(' ');
+                  if (vb[2] && vb[3]) a.whRatio = vb[2] / vb[3];
+                })
+                .catch(() => {});
               res();
             });
           })
