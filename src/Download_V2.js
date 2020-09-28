@@ -612,30 +612,34 @@ const done = function (oc, taskId, dlding) {
 const manageOfflinePath = oc => {
   let of = offlineFiles;
   let sp = `${isiOS ? '' : 'file://'}${securedPath}`;
-  if (of.find(o => o.includes(`${oc.lesson.id}Video`)))
-    oc.lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
-      o.includes(`${oc.lesson.id}Video`)
-    )}`;
-  if (of.find(o => o.includes(oc.lesson.data[0].id)))
-    oc.lesson.data[0].value = `${sp}/${of.find(o =>
-      o.includes(oc.lesson.data[0].id)
-    )}`;
-  oc.lesson.related_lessons?.map(rl => {
-    if (of.find(o => o.includes(rl.data[0].id)))
-      rl.data[0].value = `${sp}/${of.find(o => o.includes(rl.data[0].id))}`;
-  });
-  oc.lesson.assignments?.map(a => {
-    a.data.map(d => {
-      if (of.find(o => o.includes(d.id)))
-        d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
-    });
-  });
-  oc.lesson.comments?.map(c => {
-    if (of.find(o => o.includes(c.user_id)))
-      c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
-        o.includes(c.user_id)
+  const manage = lesson => {
+    if (of.find(o => o.includes(`${lesson.id}Video`)))
+      lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
+        o.includes(`${lesson.id}Video`)
       )}`;
-  });
+    if (of.find(o => o.includes(lesson.data[0].id)))
+      lesson.data[0].value = `${sp}/${of.find(o =>
+        o.includes(lesson.data[0].id)
+      )}`;
+    lesson.related_lessons?.map(rl => {
+      if (of.find(o => o.includes(rl.data[0].id)))
+        rl.data[0].value = `${sp}/${of.find(o => o.includes(rl.data[0].id))}`;
+    });
+    lesson.assignments?.map(a => {
+      a.data.map(d => {
+        if (of.find(o => o.includes(d.id)))
+          d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
+      });
+    });
+    lesson.comments?.map(c => {
+      if (of.find(o => o.includes(c.user_id)))
+        c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
+          o.includes(c.user_id)
+        )}`;
+    });
+  };
+  if (oc.lesson) manage(oc.lesson);
+  if (oc.overview) oc.overview.lessons.map(l => manage(l));
 };
 
 const getOfflineContent = () =>
