@@ -528,7 +528,9 @@ export default class Download_V2 extends React.PureComponent {
             }}
           >
             {propStyle?.textStatus && (
-              <Text style={propStyle?.textStatus}>{status}</Text>
+              <Text maxFontSizeMultiplier={1.1} style={propStyle?.textStatus}>
+                {status}
+              </Text>
             )}
             <View
               style={{
