@@ -330,11 +330,16 @@ export default class Download_V2 extends React.PureComponent {
       );
 
   downloadThumb = lesson =>
-    new Promise(res => {
+    new Promise(async res => {
       let thumb = lesson.data[0];
-      let extension = thumb?.value.split('.').pop();
-      let url = thumb?.value;
-      let id = `${thumb?.id}.${extension}`;
+      if (!thumb) return res();
+      let extension = thumb.value.split('.').pop();
+      if (!['jpeg', 'jpg', 'png'].includes(extension))
+        extension = (await fetch(thumb.value))?.headers?.map?.['content-type']
+          ?.split('/')
+          ?.pop();
+      let url = thumb.value;
+      let id = `${thumb.id}.${extension}`;
       this.downloadItem(id, url, securedPath).then(value => {
         thumb.value = value;
         res();
@@ -352,8 +357,15 @@ export default class Download_V2 extends React.PureComponent {
       .related_lessons.map(rl => rl.data.find(d => d.key === 'thumbnail_url'))
       .map(
         thumb =>
-          new Promise(res => {
+          new Promise(async res => {
+            if (!thumb) return res();
             let extension = thumb.value.split('.').pop();
+            if (!['jpeg', 'jpg', 'png'].includes(extension))
+              extension = (await fetch(thumb.value))?.headers?.map?.[
+                'content-type'
+              ]
+                ?.split('/')
+                ?.pop();
             let url = thumb.value;
             let id = `${thumb.id}.${extension}`;
             this.downloadItem(id, url, securedPath).then(value => {
