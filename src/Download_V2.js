@@ -181,6 +181,20 @@ export default class Download_V2 extends React.PureComponent {
 
   deref = async () => {
     let lesson = await this.props.entity.lesson;
+    if (
+      lesson?.fields
+        ?.find(f => f.key === 'video')
+        ?.value?.type?.toLowerCase()
+        ?.includes('youtube')
+    ) {
+      this.setState({ status: 'Download' });
+      return Alert.alert(
+        'Copyrighted material',
+        'This video contains copyrighted material and is not available for offline viewing.',
+        [{ text: 'OK' }],
+        { cancelable: false }
+      );
+    }
     let overview = await this.props.entity.overview;
     let { comments } = this.props.entity;
     if (!lesson && !overview) {
