@@ -24,6 +24,7 @@ const getTypeByExtension = path => {
 
 const downloadRes = (
   resource,
+  lessonTitle,
   id,
   notEmmitingProgress,
   notOppeningAfterDld,
@@ -34,13 +35,13 @@ const downloadRes = (
     let isiOS = Platform.OS === 'ios';
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
-      ? `${dirs.DocumentDir}/Downloads/${resource.resource_url
+      ? `${dirs.DocumentDir}/Downloads/${lessonTitle}/${resource.resource_url
           .split('/')
           .pop()
           .replace(/ /g, '')
           .replace(/%20/g, '-')
           .toLowerCase()}`
-      : `${dirs.SDCardDir}/Download/${resource.resource_url
+      : `${dirs.SDCardDir}/Download/${lessonTitle}/${resource.resource_url
           .split('/')
           .pop()
           .replace(/ /g, '-')
@@ -55,7 +56,7 @@ const downloadRes = (
           RNFetchBlob.android.actionViewIntent(
             filePath,
             getTypeByExtension(filePath)
-          );
+          );  
         }
       }
     } else {
@@ -203,11 +204,11 @@ const downloadRes = (
   });
 };
 
-const renderSvgs = (extension, theme) => {
+const renderSvgs = (extension, propStyle) => {
   const svgStyle = {
     height: 18,
     width: 18,
-    fill: 'red'
+    fill: propStyle.color
   };
   switch (extension) {
     case 'zip':
@@ -231,9 +232,9 @@ export default class DownloadResources extends React.Component {
   }
 
   render() {
-    let { resources, maxFontMultiplier, styles: propStyle } = this.props;
+    let { resources, maxFontMultiplier, styles: propStyle, lessonTitle } = this.props;
     return (
-      <View style={{ backgroundColor: 'red' }}>
+      <View style={propStyle.container}>
         <ScrollView>
           {resources &&
             resources.map((resource, index) => (
@@ -245,11 +246,11 @@ export default class DownloadResources extends React.Component {
                   alignItems: 'center',
                   padding: 15,
                   borderBottomWidth: 1,
-                  borderBottomColor: 'red'
+                  borderBottomColor: propStyle.borderColor
                 }}
                 onPress={async () => {
                   await this.props.onClose();
-                  downloadRes(resource, index);
+                  downloadRes(resource, lessonTitle, index);
                 }}
               >
                 <View style={{ flexDirection: 'row' }}>
@@ -258,16 +259,19 @@ export default class DownloadResources extends React.Component {
                       marginRight: 15
                     }}
                   >
-                    {renderSvgs(resource.extension, theme)}
+                    {renderSvgs(resource.extension, propStyle)}
                   </View>
 
                   <Text
                     maxFontSizeMultiplier={maxFontMultiplier}
+                    numberOfLines={1}
+                    ellipsizeMode={'tail'}
                     style={{
-                      color: 'red',
+                      color: propStyle.color,
                       fontSize: 14,
-                      color: '#000000',
-                      fontFamily: propStyle?.touchableTextResourceNameFontFamily
+                      color: propStyle.color,
+                      fontFamily: propStyle?.touchableTextResourceNameFontFamily,
+                      width: '75%'
                     }}
                   >
                     {resource.resource_name}
@@ -277,7 +281,7 @@ export default class DownloadResources extends React.Component {
                   <Text
                     maxFontSizeMultiplier={maxFontMultiplier}
                     style={{
-                      color: 'red',
+                      color: propStyle.color,
                       fontSize: 12,
                       marginRight: 10,
                       fontFamily:
@@ -289,7 +293,7 @@ export default class DownloadResources extends React.Component {
                   {link({
                     height: 12,
                     width: 12,
-                    fill: 'red'
+                    fill: propStyle.color
                   })}
                 </View>
               </TouchableOpacity>
@@ -309,13 +313,13 @@ export default class DownloadResources extends React.Component {
               {x({
                 height: 18,
                 width: 18,
-                fill: 'red'
+                fill: propStyle.color
               })}
             </View>
             <Text
               maxFontSizeMultiplier={maxFontMultiplier}
               style={{
-                color: 'red',
+                color: propStyle.color,
                 fontSize: 14,
                 fontFamily: propStyle?.touchableTextResourceCancelFontFamily
               }}
