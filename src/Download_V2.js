@@ -220,7 +220,10 @@ export default class Download_V2 extends React.PureComponent {
           ...this.hd720OrHighestVideo(lesson.video_playback_endpoints)
         }
       ],
-      data: [{ ...lesson.data.find(d => d.key === 'thumbnail_url') }],
+      data: [
+        { ...lesson.data.find(d => d.key === 'thumbnail_url') },
+        { ...lesson.data.find(d => d.key === 'description') }
+      ],
       related_lessons: lesson.related_lessons?.map(rl => ({
         ...rl,
         data: [{ ...rl.data.find(d => d.key === 'thumbnail_url') }]
