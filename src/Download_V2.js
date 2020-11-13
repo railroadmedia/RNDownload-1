@@ -61,6 +61,7 @@ export default class Download_V2 extends React.PureComponent {
   }
 
   componentWillUnmount() {
+    this.listenForLargestFile?.remove?.();
     AppState.removeEventListener('change', this.handleAppState);
   }
 
@@ -263,6 +264,19 @@ export default class Download_V2 extends React.PureComponent {
     if (oc) {
       if (oc.dlding.length) {
         this.setState({ status: 'Downloading' });
+        if (!oc.fileSizes.largestFile)
+          return (this.listenForLargestFile = Download_V2.addEventListener(
+            p => {
+              if (
+                p.largestDownloads.some(
+                  ld => ld.id === oc.fileSizes.largestFile
+                )
+              ) {
+                this.resumeThis();
+                this.listenForLargestFile.remove();
+              }
+            }
+          ));
         this.tasks = allDownloads.filter(ad =>
           oc.dlding.some(d => d.id === ad.id)
         );
