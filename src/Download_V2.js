@@ -443,14 +443,16 @@ export default class Download_V2 extends React.PureComponent {
 
   downloadItem = (taskId, url, path) =>
     new Promise(res => {
-      if (this.tasks.find(t => t.id === `${taskId}`))
-        return res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
       let oc = offlineContent[this.id];
       oc.dlding.push({
         url,
         id: taskId,
         destination: `${path}/${taskId}`
       });
+      if (allDownloads.find(t => t.id === `${taskId}`)) {
+        done(oc, taskId);
+        return res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
+      }
       let task = RNBackgroundDownloader.download({
         url,
         id: taskId,
