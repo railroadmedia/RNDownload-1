@@ -772,34 +772,41 @@ const deleteLesson = function (id) {
       offc.overview.lessons.some(l => l.id === id)
     );
   this.setState?.({ status: 'Download' });
-  let filterToBeDeleted = (toBeDeleted = []) =>
-    toBeDeleted.filter(
-      tbd =>
-        Object.values(offlineContent).filter(
-          o =>
-            o.dlded.includes(tbd) || o.dlding.some(d => d.destination === tbd)
-        ).length === 1
+  let overviewContainingLesson = Object.values(offlineContent).find(oc =>
+    oc.overview?.lessons.some(l => l.id === id)
+  );
+  if (overviewContainingLesson)
+    overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
+  else {
+    let filterToBeDeleted = (toBeDeleted = []) =>
+      toBeDeleted.filter(
+        tbd =>
+          Object.values(offlineContent).filter(
+            o =>
+              o.dlded.includes(tbd) || o.dlding.some(d => d.destination === tbd)
+          ).length === 1
+      );
+    let toBeDeleted = filterToBeDeleted(
+      oc?.dlded.concat(oc?.dlding.map(d => d.destination))
     );
-  let toBeDeleted = filterToBeDeleted(
-    oc?.dlded.concat(oc?.dlding.map(d => d.destination))
-  );
-  offlineFiles = offlineFiles.filter(
-    of => !toBeDeleted.some(tbd => tbd.includes(of))
-  );
-  toBeDeleted.map(tbd => {
-    this.tasks?.map(t => {
-      if (t.id === tbd.split('/').pop()) {
-        t.stop();
-        allDownloads = allDownloads.filter(ad => ad.id !== t.id);
+    offlineFiles = offlineFiles.filter(
+      of => !toBeDeleted.some(tbd => tbd.includes(of))
+    );
+    toBeDeleted.map(tbd => {
+      this.tasks?.map(t => {
+        if (t.id === tbd.split('/').pop()) {
+          t.stop();
+          allDownloads = allDownloads.filter(ad => ad.id !== t.id);
+        }
+      });
+      if (tbd.includes(publicPath)) {
+        tbd = tbd.split('/');
+        tbd.pop();
+        tbd = tbd.join('/');
       }
+      return RNFetchBlob.fs.unlink(tbd).catch(() => {});
     });
-    if (tbd.includes(publicPath)) {
-      tbd = tbd.split('/');
-      tbd.pop();
-      tbd = tbd.join('/');
-    }
-    return RNFetchBlob.fs.unlink(tbd).catch(() => {});
-  });
+  }
   if (this.tasks) this.tasks = [];
   let taskId = offlineContent[id].fileSizes.largestFile;
   delete offlineContent?.[oc.id];
