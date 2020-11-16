@@ -296,9 +296,9 @@ export default class Download_V2 extends React.PureComponent {
   download = async () => {
     this.setState({ status: 'Downloading' });
     if (!(await this.deref())) return;
-    let lessons = offlineContent[this.id].overview?.lessons || [
-      offlineContent[this.id].lesson
-    ];
+    let lessons = offlineContent[this.id].overview?.lessons.filter(
+      l => !Object.values(offlineContent).some(oc => oc.id === l.id)
+    ) || [offlineContent[this.id].lesson];
     let promises = lessons
       .map(l => this.downloadVideo(l))
       .concat(lessons.map(l => this.downloadThumb(l)))
@@ -464,7 +464,7 @@ export default class Download_V2 extends React.PureComponent {
         destination: `${path}/${taskId}`
       });
       if (allDownloads.find(t => t.id === `${taskId}`)) {
-        done(oc, taskId);
+        done.call(this, oc, taskId);
         return res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
       }
       let task = RNBackgroundDownloader.download({
@@ -490,7 +490,7 @@ export default class Download_V2 extends React.PureComponent {
           .begin(expectedBytes => handleLessonSize(oc, taskId, expectedBytes))
           .progress(p => progress.call(this, p, oc, task))
           .done(() => {
-            done(oc, taskId);
+            done.call(this, oc, taskId);
             res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
           })
           .error(e => {
