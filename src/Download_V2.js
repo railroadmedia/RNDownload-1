@@ -181,7 +181,8 @@ export default class Download_V2 extends React.PureComponent {
       .pop();
 
   deref = async () => {
-    let lesson = await this.props.entity.lesson;
+    let { data: [lesson] = [] } = (await this.props.entity.lesson) || {};
+    if (!lesson) lesson = await this.props.entity.lesson;
     if (
       lesson?.fields
         ?.find(f => f.key === 'video')
@@ -196,7 +197,8 @@ export default class Download_V2 extends React.PureComponent {
         { cancelable: false }
       );
     }
-    let overview = await this.props.entity.overview;
+    let { data: [overview] = [] } = (await this.props.entity.overview) || {};
+    if (!overview) overview = await this.props.entity.overview;
     let { comments } = this.props.entity;
     if (!lesson && !overview) {
       this.setState({ status: 'Download' });
@@ -459,8 +461,8 @@ export default class Download_V2 extends React.PureComponent {
     new Promise(res => {
       let oc = offlineContent[this.id];
       oc.dlding.push({
-        url,
         id: taskId,
+        url: encodeURI(url),
         destination: `${path}/${taskId}`
       });
       if (allDownloads.find(t => t.id === `${taskId}`)) {
@@ -468,16 +470,16 @@ export default class Download_V2 extends React.PureComponent {
         return res(`${isiOS ? '' : 'file://'}${path}/${taskId}`);
       }
       let task = RNBackgroundDownloader.download({
-        url,
         id: taskId,
+        url: encodeURI(url),
         destination: `${path}/${taskId}`
       });
       let restart = () => {
         delete progresses[taskId];
         task.stop();
         task = RNBackgroundDownloader.download({
-          url,
           id: taskId,
+          url: encodeURI(url),
           destination: `${path}/${taskId}`
         });
         allDownloads.map((ad, i) => {
