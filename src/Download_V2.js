@@ -181,8 +181,9 @@ export default class Download_V2 extends React.PureComponent {
       .pop();
 
   deref = async () => {
-    let { data: [lesson] = [] } = (await this.props.entity.lesson) || {};
-    if (!lesson) lesson = await this.props.entity.lesson;
+    let content = await this.props.entity.content;
+    if (Object.keys(content).length === 1) content = content.data[0];
+    let lesson = content?.lessons?.length ? undefined : content;
     if (
       lesson?.fields
         ?.find(f => f.key === 'video')
@@ -197,8 +198,7 @@ export default class Download_V2 extends React.PureComponent {
         { cancelable: false }
       );
     }
-    let { data: [overview] = [] } = (await this.props.entity.overview) || {};
-    if (!overview) overview = await this.props.entity.overview;
+    let overview = content?.lessons?.length ? content : undefined;
     let { comments } = this.props.entity;
     if (!lesson && !overview) {
       this.setState({ status: 'Download' });
