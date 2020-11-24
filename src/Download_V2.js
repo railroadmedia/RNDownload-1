@@ -226,7 +226,11 @@ export default class Download_V2 extends React.PureComponent {
       data: [
         { ...lesson.data.find(d => d.key === 'thumbnail_url') },
         { ...lesson.data.find(d => d.key === 'description') }
-      ],
+      ].concat(
+        lesson.data
+          .filter(d => d.key.includes('_click_url'))
+          .map(d => ({ ...d }))
+      ),
       related_lessons: lesson.related_lessons?.map(rl => ({
         ...rl,
         data: [{ ...rl.data.find(d => d.key === 'thumbnail_url') }]
@@ -305,6 +309,7 @@ export default class Download_V2 extends React.PureComponent {
       .map(l => this.downloadVideo(l))
       .concat(lessons.map(l => this.downloadThumb(l)))
       .concat(this.downloadResource(lessons))
+      .concat(this.downloadMp3s(lessons))
       .concat(this.downloadAssignment(lessons))
       .concat(this.downloadRelatedThumb(lessons))
       .concat(this.downloadCommentUserProfile(lessons));
@@ -316,6 +321,22 @@ export default class Download_V2 extends React.PureComponent {
     });
     setOfflineContent();
   };
+
+  downloadMp3s = lessons =>
+    lessons
+      .map(l => l.data?.filter(d => d.key?.includes('_click_url')))
+      .flat()
+      .map(
+        d =>
+          new Promise(res => {
+            let url = d.value;
+            let id = `${d.id}.mp3`;
+            this.downloadItem(id, url, securedPath).then(value => {
+              d.value = value;
+              res();
+            });
+          })
+      );
 
   downloadVideo = lesson =>
     new Promise(res => {
