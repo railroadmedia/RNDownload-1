@@ -35,13 +35,17 @@ const downloadRes = (
     let isiOS = Platform.OS === 'ios';
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
-      ? `${dirs.DocumentDir}/Downloads/${lessonTitle}/${resource.resource_url
+      ? `${
+          dirs.DocumentDir
+        }/Downloads/${lessonTitle}/${resource.resource_url
           .split('/')
           .pop()
           .replace(/ /g, '')
           .replace(/%20/g, '-')
           .toLowerCase()}`
-      : `${dirs.SDCardDir}/Download/${lessonTitle}/${resource.resource_url
+      : `${
+          dirs.SDCardDir
+        }/Download/${lessonTitle}/${resource.resource_url
           .split('/')
           .pop()
           .replace(/ /g, '-')
@@ -56,7 +60,7 @@ const downloadRes = (
           RNFetchBlob.android.actionViewIntent(
             filePath,
             getTypeByExtension(filePath)
-          );  
+          );
         }
       }
     } else {
@@ -68,7 +72,7 @@ const downloadRes = (
           });
           this[id] = fetchConf.fetch(
             'GET',
-            encodeURI(decodeURI(resource.resource_url))
+            resource.resource_url.replace(/ /g, '%20')
           );
           this[id]
             .progress((received, total) => {
@@ -152,7 +156,7 @@ const downloadRes = (
                   };
                   let fetchConf = RNFetchBlob.config(options);
                   fetchConf
-                    .fetch('GET', encodeURI(decodeURI(resource.resource_url)))
+                    .fetch('GET', resource.resource_url.replace(/ /g, '%20'))
                     .then(fetchResp => {
                       resolve();
                       if (!notOppeningAfterDld) {
@@ -232,7 +236,12 @@ export default class DownloadResources extends React.Component {
   }
 
   render() {
-    let { resources, maxFontMultiplier, styles: propStyle, lessonTitle } = this.props;
+    let {
+      resources,
+      maxFontMultiplier,
+      styles: propStyle,
+      lessonTitle
+    } = this.props;
     return (
       <View style={propStyle.container}>
         <ScrollView>
@@ -270,7 +279,8 @@ export default class DownloadResources extends React.Component {
                       color: propStyle.color,
                       fontSize: 14,
                       color: propStyle.color,
-                      fontFamily: propStyle?.touchableTextResourceNameFontFamily,
+                      fontFamily:
+                        propStyle?.touchableTextResourceNameFontFamily,
                       width: '75%'
                     }}
                   >

@@ -483,7 +483,7 @@ export default class Download_V2 extends React.PureComponent {
       let oc = offlineContent[this.id];
       oc.dlding.push({
         id: taskId,
-        url: encodeURI(url),
+        url: url.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`
       });
       if (allDownloads.find(t => t.id === `${taskId}`)) {
@@ -492,7 +492,7 @@ export default class Download_V2 extends React.PureComponent {
       }
       let task = RNBackgroundDownloader.download({
         id: taskId,
-        url: encodeURI(url),
+        url: url.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`
       });
       let restart = () => {
@@ -500,7 +500,7 @@ export default class Download_V2 extends React.PureComponent {
         task.stop();
         task = RNBackgroundDownloader.download({
           id: taskId,
-          url: encodeURI(url),
+          url: url.replace(/ /g, '%20'),
           destination: `${path}/${taskId}`
         });
         allDownloads.map((ad, i) => {
