@@ -35,22 +35,8 @@ const downloadRes = (
     let isiOS = Platform.OS === 'ios';
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
-      ? `${
-          dirs.DocumentDir
-        }/Downloads/${lessonTitle}/${resource.resource_url
-          .split('/')
-          .pop()
-          .replace(/ /g, '')
-          .replace(/%20/g, '-')
-          .toLowerCase()}`
-      : `${
-          dirs.SDCardDir
-        }/Download/${lessonTitle}/${resource.resource_url
-          .split('/')
-          .pop()
-          .replace(/ /g, '-')
-          .replace(/%20/g, '-')
-          .toLowerCase()}`;
+      ? `${dirs.DocumentDir}/${lessonTitle}/${resource.resource_id}.${resource.extension}`
+      : `${dirs.DownloadDir}/${lessonTitle}/${resource.resource_id}.${resource.extension}`;
     let exists = await RNFetchBlob.fs.exists(filePath);
     if (exists) {
       resolve();

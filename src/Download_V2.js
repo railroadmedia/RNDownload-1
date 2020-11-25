@@ -47,7 +47,9 @@ export default class Download_V2 extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    publicPath = props.publicPath || RNFetchBlob.fs.dirs.DocumentDir;
+    publicPath =
+      props.publicPath ||
+      RNFetchBlob.fs.dirs[isiOS ? 'DocumentDir' : 'DownloadDir'];
     securedPath =
       props.securedPath ||
       RNFetchBlob.fs.dirs.LibraryDir ||
