@@ -11,6 +11,7 @@ import {
   PixelRatio,
   TouchableOpacity,
   ActivityIndicator,
+  PermissionsAndroid,
   DeviceEventEmitter
 } from 'react-native';
 
@@ -453,7 +454,20 @@ export default class Download_V2 extends React.PureComponent {
           })
       );
 
-  downloadResource = lessons =>
+  downloadResource = async lessons => {
+    if (!isiOS) {
+      let granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        {
+          title: 'Write to external Storage',
+          message: 'For downloading resources we need your permission',
+          buttonNeutral: 'Ask Me Later',
+          buttonNegative: 'Cancel',
+          buttonPositive: 'OK'
+        }
+      );
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) return [];
+    }
     lessons
       .map(l => ({
         ...l,
@@ -479,6 +493,7 @@ export default class Download_V2 extends React.PureComponent {
             );
           })
       );
+  };
 
   downloadItem = (taskId, url, path) =>
     new Promise(res => {
