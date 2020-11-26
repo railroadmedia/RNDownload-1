@@ -41,7 +41,8 @@ const downloadRes = (
     if (exists) {
       resolve();
       if (!notOppeningAfterDld) {
-        if (isiOS) RNFetchBlob.ios.openDocument(filePath);
+        if (isiOS)
+          setTimeout(() => RNFetchBlob.ios.openDocument(filePath), 1000);
         else {
           RNFetchBlob.android.actionViewIntent(
             filePath,
