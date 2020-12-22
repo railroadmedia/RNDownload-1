@@ -563,8 +563,8 @@ export default class Download_V2 extends React.PureComponent {
     const { status } = this.state;
     const { styles: propStyle } = this.props;
     const iconStyle = {
-      width: 25,
-      height: 25,
+      width: propStyle?.iconSize?.width || 25,
+      height: propStyle?.iconSize?.height || 25,
       fill: propStyle?.iconDownloadColor || 'black'
     };
     return (
