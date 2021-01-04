@@ -11,8 +11,8 @@
   },
   "peerDependencies": {
     "@react-native-community/netinfo": "^5.9.9",
-    "react-native-background-downloader": "git+https://github.com/railroadmedia/react-native-background-downloader.git#2.3.4.1",
-    "react-native-svg": "^12.1.0",
+    "react-native-background-downloader": "https://github.com/railroadmedia/react-native-background-downloader.git#2.3.4.1",
+    "react-native-svg": "https://github.com/railroadmedia/react-native-remote-svg#bogdan-vol-drumeo-mobile-patches",
     "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
