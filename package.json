@@ -9,11 +9,11 @@
     "test": "jest",
     "lint": "eslint ."
   },
-  "dependencies": {
-    "@react-native-community/netinfo": "*",
+  "peerDependencies": {
+    "@react-native-community/netinfo": "^5.9.9",
     "react-native-background-downloader": "git+https://github.com/railroadmedia/react-native-background-downloader.git#2.3.4.1",
-    "react-native-svg": "*",
-    "rn-fetch-blob": "*"
+    "react-native-svg": "^12.1.0",
+    "rn-fetch-blob": "^0.12.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
