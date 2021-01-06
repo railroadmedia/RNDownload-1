@@ -108,13 +108,6 @@ export default class Download_V2 extends React.PureComponent {
     offlineContent = await getOfflineContent();
     handleOldOfflineFormat();
     allDownloads = await RNBackgroundDownloader.checkForExistingDownloads();
-    console.log(
-      allDownloads,
-      offlineContent,
-      JSON.parse(JSON.stringify(offlineContent)),
-      offlineFiles,
-      JSON.parse(JSON.stringify(offlineFiles))
-    );
     Object.values(offlineContent).map(oc => {
       dldingToDlded(oc);
       oc.dlding
