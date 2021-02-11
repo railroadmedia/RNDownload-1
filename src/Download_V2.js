@@ -344,40 +344,38 @@ export default class Download_V2 extends React.PureComponent {
       });
     });
 
-  downloadAssignment = lessons =>
-    lessons
-      .reduce(
-        (a, b) => ({
-          assignments: a.assignments.concat(b.assignments || [])
-        }),
-        { assignments: [] }
+  downloadAssignment = lessons => {
+    let assignments = [];
+    lessons.map(l =>
+      l.assignments?.map(a =>
+        a.data?.map(d => {
+          if (d.key === 'sheet_music_image_url') assignments.push(d);
+        })
       )
-      .assignments.filter(a =>
-        a.data?.some(d => d.key === 'sheet_music_image_url')
-      )
-      .map(a => a.data.find(d => d.key === 'sheet_music_image_url'))
-      .map(
-        a =>
-          new Promise(res => {
-            let extension = a.value.split('.').pop();
-            let url = a.value;
-            let id = `${a.id}.${extension}`;
-            this.downloadItem(id, url, securedPath).then(value => {
-              a.value = value;
-              RNFetchBlob.fs
-                .readFile(a.value)
-                .then(result => {
-                  let vb = result
-                    ?.split('viewBox="')?.[1]
-                    ?.split('"')?.[0]
-                    .split(' ');
-                  if (vb[2] && vb[3]) a.whRatio = vb[2] / vb[3];
-                })
-                .catch(() => {});
-              res();
-            });
-          })
-      );
+    );
+    assignments.map(
+      a =>
+        new Promise(res => {
+          let extension = a.value.split('.').pop();
+          let url = a.value;
+          let id = `${a.id}.${extension}`;
+          this.downloadItem(id, url, securedPath).then(value => {
+            a.value = value;
+            RNFetchBlob.fs
+              .readFile(a.value)
+              .then(result => {
+                let vb = result
+                  ?.split('viewBox="')?.[1]
+                  ?.split('"')?.[0]
+                  .split(' ');
+                if (vb[2] && vb[3]) a.whRatio = vb[2] / vb[3];
+              })
+              .catch(() => {});
+            res();
+          });
+        })
+    );
+  };
 
   downloadThumb = lesson =>
     new Promise(async res => {
