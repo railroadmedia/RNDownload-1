@@ -50,7 +50,7 @@ export default class AnimatedCustomAlert extends React.PureComponent {
             style={[
               styles.animatedView,
               {
-                marginHorizontal: 50,
+                marginHorizontal: 10,
                 opacity: this.state.opacity,
                 backgroundColor: propStyle?.background || 'white'
               }
@@ -142,7 +142,6 @@ const styles = StyleSheet.create({
   animatedView: {
     padding: 10,
     paddingHorizontal: 50,
-    borderRadius: 10,
-    margin: 5
+    borderRadius: 10
   }
 });
