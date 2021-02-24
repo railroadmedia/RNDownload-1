@@ -303,8 +303,10 @@ export default class Download_V2 extends React.PureComponent {
     let lessons = offlineContent[this.id].overview?.lessons.filter(
       l => !Object.values(offlineContent).some(oc => oc.id === l.id)
     ) || [offlineContent[this.id].lesson];
-    let promises = lessons
-      .map(l => this.downloadVideo(l))
+    let promises = lessons.map(l => this.downloadVideo(l));
+    if (offlineContent[this.id].overview)
+      promises.push(this.downloadThumb(offlineContent[this.id].overview));
+    promises
       .concat(lessons.map(l => this.downloadThumb(l)))
       .concat(this.downloadResource(lessons))
       .concat(this.downloadMp3s(lessons))
@@ -677,7 +679,7 @@ const done = function (oc, taskId, dlding) {
   offlineFiles.push(taskId);
   dldingToDlded(oc);
   manageOfflinePath(oc);
-  setOfflineContent();
+  setOfflineContent(taskId);
   if (!oc.dlding.length) {
     this?.props?.onDone?.();
     this?.setState?.({ status: 'Downloaded' });
@@ -753,7 +755,9 @@ const getSecuredOfflineFiles = () =>
     }
   });
 
-const setOfflineContent = () =>
+const setOfflineContent = id => {
+  if (id?.includes('.png') || id?.includes('.jpg') || id?.includes('.jpeg'))
+    return;
   RNFetchBlob.fs
     .writeFile(
       `${securedPath}/offlineContent`,
@@ -761,6 +765,7 @@ const setOfflineContent = () =>
       'utf8'
     )
     .catch(() => {});
+};
 
 const dldingToDlded = oc =>
   (oc.dlding = oc.dlding.filter(d => {
