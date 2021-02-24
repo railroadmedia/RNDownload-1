@@ -36,7 +36,7 @@ const downloadRes = (
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
       ? `${dirs.DocumentDir}/${lessonTitle}/${resource.resource_id}.${resource.extension}`
-      : `${dirs.DownloadDir}/${lessonTitle}/${resource.resource_id}.${resource.extension}`;
+      : `${dirs.DownloadDir}/${lessonTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'')}/${resource.resource_id}.${resource.extension}`;
     let exists = await RNFetchBlob.fs.exists(filePath);
     if (exists) {
       resolve();
