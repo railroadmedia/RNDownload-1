@@ -163,6 +163,8 @@ export default class Download_V2 extends React.PureComponent {
 
   handleAppState = state => {
     if (state === 'active') {
+      if (!this.tasks?.some(t => t.state !== 'DONE'))
+        this.setState({ status: 'Downloaded' });
       let oc = offlineContent[this.id];
       let largestDld = this.tasks.find(t => t.id === oc.fileSizes.largestFile);
       largestDld?.progress(p => progress.call(this, p, oc, largestDld));
