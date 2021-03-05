@@ -171,18 +171,12 @@ export default class Download_V2 extends React.PureComponent {
     }
   };
 
-  hd720OrHighestVideo = videos =>
-    videos
-      .filter(v => v.height <= 720)
-      .filter(v => v.height <= -~width * pixR)
-      .sort((a, b) => (a.height < b.height ? -1 : 1))
-      .pop();
-
   deref = async () => {
     let content = await this.props.entity.content;
     if (Object.keys(content).length === 1) content = content.data[0];
     let lesson = content?.lessons?.length ? undefined : content;
     if (
+      lesson?.youtube_video_id ||
       lesson?.fields
         ?.find(f => f.key === 'video')
         ?.value?.type?.toLowerCase()
@@ -214,48 +208,19 @@ export default class Download_V2 extends React.PureComponent {
       sizeInBytes: 0,
       id: this.id
     };
-    let derefLesson = lesson => ({
-      ...lesson,
-      video_playback_endpoints: [
-        {
-          ...this.hd720OrHighestVideo(lesson.video_playback_endpoints)
-        }
-      ],
-      data: [
-        { ...lesson.data.find(d => d.key === 'thumbnail_url') },
-        { ...lesson.data.find(d => d.key === 'description') }
-      ].concat(
-        lesson.data
-          .filter(d => d.key.includes('_click_url'))
-          .map(d => ({ ...d }))
-      ),
-      related_lessons: lesson.related_lessons?.map(rl => ({
-        ...rl,
-        data: [{ ...rl.data.find(d => d.key === 'thumbnail_url') }]
-      })),
-      assignments: lesson.assignments?.map(a => ({
-        ...a,
-        data: a.data?.map(d => ({
-          ...d
-        }))
-      })),
-      resources: Object.values(lesson.resources || {})?.map(r => ({
-        ...r
-      })),
-      comments: (comments || lesson.comments)?.map(c => ({
-        ...c,
-        user: { ...c.user }
-      }))
-    });
 
-    if (lesson) offlineContent[this.id].lesson = derefLesson(lesson);
+    if (lesson) offlineContent[this.id].lesson = derefLesson(lesson, comments);
 
-    if (overview)
+    if (overview) {
       offlineContent[this.id].overview = {
         ...overview,
-        data: [{ ...overview.data.find(d => d.key === 'thumbnail_url') }],
         lessons: overview.lessons.map(l => derefLesson(l))
       };
+      if (overview.data)
+        overview.data = [
+          { ...overview.data.find(d => d.key === 'thumbnail_url') }
+        ];
+    }
     return true;
   };
 
@@ -313,8 +278,6 @@ export default class Download_V2 extends React.PureComponent {
       .concat(this.downloadAssignment(lessons))
       .concat(this.downloadRelatedThumb(lessons))
       .concat(this.downloadCommentUserProfile(lessons));
-    if (offlineContent[this.id].overview)
-      promises.push(this.downloadThumb(offlineContent[this.id].overview));
     Promise.all(promises).then(() => {
       this.setState({ status: 'Downloaded' });
       setOfflineContent();
@@ -324,7 +287,18 @@ export default class Download_V2 extends React.PureComponent {
 
   downloadMp3s = lessons =>
     lessons
-      .map(l => l.data?.filter(d => d.key?.includes('_click_url')))
+      .map(
+        l =>
+          l.data?.filter(d => d.key?.includes('_click_url')) ||
+          Object.keys(l)
+            .filter(k => k.includes('_click_url'))
+            .map(key => ({
+              lesson: l,
+              id: `${l.id}${key}`,
+              key,
+              value: l[key]
+            }))
+      )
       .flat()
       .map(
         d =>
@@ -333,6 +307,7 @@ export default class Download_V2 extends React.PureComponent {
             let id = `${d.id}.mp3`;
             this.downloadItem(id, url, securedPath).then(value => {
               d.value = value;
+              if (d.lesson) d.lesson[d.key] = value;
               res();
             });
           })
@@ -351,11 +326,13 @@ export default class Download_V2 extends React.PureComponent {
   downloadAssignment = lessons => {
     let assignments = [];
     lessons.map(l =>
-      l.assignments?.map(a =>
-        a.data?.map(d => {
-          if (d.key === 'sheet_music_image_url') assignments.push(d);
-        })
-      )
+      l.assignments?.map(a => {
+        if (a.data)
+          a.data?.map(d => {
+            if (d.key === 'sheet_music_image_url') assignments.push(d);
+          });
+        else assignments = assignments.concat(a.sheet_music_image_url || []);
+      })
     );
     assignments.map(
       a =>
@@ -383,8 +360,12 @@ export default class Download_V2 extends React.PureComponent {
 
   downloadThumb = lesson =>
     new Promise(async res => {
-      let thumb = lesson.data[0];
+      let thumb = lesson.data?.[0] || {
+        id: `${lesson.id}thumb`,
+        value: lesson.thumbnail_url
+      };
       if (!thumb) return res();
+      if (!thumb.value) return res();
       let extension = thumb.value.split('.').pop();
       if (!['jpeg', 'jpg', 'png'].includes(extension))
         extension = (await fetch(thumb.value))?.headers?.map?.['content-type']
@@ -394,6 +375,7 @@ export default class Download_V2 extends React.PureComponent {
       let id = `${thumb.id}.${extension}`;
       this.downloadItem(id, url, securedPath).then(value => {
         thumb.value = value;
+        lesson.thumbnail_url = value;
         res();
       });
     });
@@ -406,11 +388,19 @@ export default class Download_V2 extends React.PureComponent {
         }),
         { related_lessons: [] }
       )
-      .related_lessons.map(rl => rl.data.find(d => d.key === 'thumbnail_url'))
+      .related_lessons.map(
+        rl =>
+          rl.data?.find(d => d.key === 'thumbnail_url') || {
+            rl,
+            id: `${rl.id}thumb`,
+            value: rl.thumbnail_url
+          }
+      )
       .map(
         thumb =>
           new Promise(async res => {
             if (!thumb) return res();
+            if (!thumb.value) return res();
             let extension = thumb.value.split('.').pop();
             if (!['jpeg', 'jpg', 'png'].includes(extension))
               extension = (await fetch(thumb.value))?.headers?.map?.[
@@ -422,6 +412,7 @@ export default class Download_V2 extends React.PureComponent {
             let id = `${thumb.id}.${extension}`;
             this.downloadItem(id, url, securedPath).then(value => {
               thumb.value = value;
+              if (thumb.rl) thumb.rl.thumbnail_url = value;
               res();
             });
           })
@@ -435,10 +426,10 @@ export default class Download_V2 extends React.PureComponent {
       .comments.map(
         c =>
           new Promise(res => {
-            let extension = c.user['fields.profile_picture_image_url']
+            let extension = c.user?.['fields.profile_picture_image_url']
               ?.split('.')
               ?.pop();
-            let url = c.user['fields.profile_picture_image_url'];
+            let url = c.user?.['fields.profile_picture_image_url'];
             let id = `${c.user_id}.${extension}`;
             if (id && url)
               this.downloadItem(id, url, securedPath).then(value => {
@@ -467,7 +458,7 @@ export default class Download_V2 extends React.PureComponent {
       .map(l => ({
         ...l,
         resources: l.resources.map(r => {
-          r.title = l.fields.find(f => f.key === 'title')?.value;
+          r.title = l.title || l.fields.find(f => f.key === 'title')?.value;
           return r;
         })
       }))
@@ -699,19 +690,30 @@ const manageOfflinePath = oc => {
       lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
         o.includes(`${lesson.id}Video`)
       )}`;
-    if (of.find(o => o.includes(lesson.data[0].id)))
+    if (of.find(o => o.includes(`${lesson.id}thumb`)))
+      lesson.thumbnail_url = `${sp}/${of.find(o =>
+        o.includes(`${lesson.id}thumb`)
+      )}`;
+    else if (of.find(o => o.includes(lesson.data?.[0].id)))
       lesson.data[0].value = `${sp}/${of.find(o =>
         o.includes(lesson.data[0].id)
       )}`;
     lesson.related_lessons?.map(rl => {
-      if (of.find(o => o.includes(rl.data[0].id)))
+      if (of.find(o => o.includes(`${rl.id}thumb`)))
+        rl.thumbnail_url = `${sp}/${of.find(o => o.includes(`${rl.id}thumb`))}`;
+      else if (of.find(o => o.includes(rl.data?.[0].id)))
         rl.data[0].value = `${sp}/${of.find(o => o.includes(rl.data[0].id))}`;
     });
     lesson.assignments?.map(a => {
-      a.data.map(d => {
-        if (of.find(o => o.includes(d.id)))
-          d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
-      });
+      if (a.data)
+        a.data.map(d => {
+          if (of.find(o => o.includes(d.id)))
+            d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
+        });
+      else
+        of.filter(o => o.includes(`${a.id}`)).map(
+          (ofa, i) => (a.sheet_music_image_url[i] = `${sp}/${ofa}`)
+        );
     });
     lesson.comments?.map(c => {
       if (of.find(o => o.includes(c.user_id)))
@@ -945,6 +947,104 @@ const handleOldOfflineFormat = () => {
         };
       }
     }
+
+    let handleLesson = lesson => {
+      lesson.style =
+        lesson.style || lesson.fields?.find(f => f.key === 'style')?.value;
+      lesson.difficulty =
+        lesson.difficulty ||
+        lesson.fields?.find(f => f.key === 'difficulty')?.value;
+      lesson.title =
+        lesson.title || lesson.fields?.find(f => f.key === 'title')?.value;
+      lesson.description =
+        lesson.description ||
+        lesson.data?.find(d => d.key === 'description')?.value;
+      lesson.data?.map(d => d.key && (lesson[d.key] = d.value));
+      lesson.vimeo_video_id =
+        lesson.vimeo_video_id ||
+        lesson.fields
+          ?.find(f => f.key === 'video')
+          ?.value?.fields?.find(f => f.key === 'vimeo_video_id')?.value;
+      lesson.assignments?.map(a => {
+        a.title = a.title || a.fields?.find(f => f.key === 'title')?.value;
+        a.description =
+          a.description || a.data?.find(d => d.key === 'description')?.value;
+        a.sheet_music_image_url =
+          a.sheet_music_image_url ||
+          a.data?.filter(d => d.key === 'sheet_music_image_url');
+      });
+      if (lesson.instructors)
+        lesson.instructor = lesson.instructors.map(i => ({
+          id: i.id,
+          name: i.name || i.fields?.find(f => f.key === 'name')?.value,
+          biography:
+            i.biography || i.data?.find(d => d.key === 'biography')?.value,
+          head_shot_picture_url:
+            i.biography ||
+            i.data?.find(d => d.key === 'head_shot_picture_url')?.value
+        }));
+    };
+    if (oc[k].lesson) handleLesson(oc[k].lesson);
+    if (oc[k].overview) {
+      oc[k].overview.description =
+        oc[k].overview.description ||
+        oc[k].overview.data?.find(d => d.key === 'description')?.value;
+      oc[k].overview.thumbnail_url =
+        oc[k].overview.thumbnail_url ||
+        oc[k].overview.data?.find(d => d.key === 'thumbnail_url')?.value;
+      oc[k].overview.title =
+        oc[k].overview.title ||
+        oc[k].overview.fields?.find(f => f.key === 'title')?.value;
+      oc[k].overview.style =
+        oc[k].overview.style ||
+        oc[k].overview.fields?.find(f => f.key === 'style')?.value;
+      oc[k].overview.difficulty =
+        oc[k].overview.difficulty ||
+        oc[k].overview.fields?.find(f => f.key === 'difficulty')?.value;
+      oc[k].overview.lessons.map(l => handleLesson(l));
+    }
   });
 };
+
+let derefLesson = (lesson, comments) => {
+  let result = {
+    ...lesson,
+    video_playback_endpoints: [
+      {
+        ...hd720OrHighestVideo(lesson.video_playback_endpoints)
+      }
+    ],
+    resources: Object.values(lesson.resources || {})?.map(r => ({
+      ...r
+    }))
+  };
+  if (lesson.assignments)
+    result.assignments = JSON.parse(JSON.stringify(lesson.assignments));
+  if (lesson.data)
+    result.data = [
+      { ...lesson.data?.find(d => d.key === 'thumbnail_url') },
+      { ...lesson.data?.find(d => d.key === 'description') }
+    ].concat(
+      lesson.data
+        ?.filter(d => d.key.includes('_click_url'))
+        .map(d => ({ ...d }))
+    );
+  result.related_lessons = lesson.related_lessons?.map(rl => {
+    let rLess = { ...rl };
+    if (rl.data)
+      rLess.data = [{ ...rl.data?.find(d => d.key === 'thumbnail_url') }];
+    return rLess;
+  });
+  result.comments = JSON.parse(JSON.stringify(comments || lesson.comments));
+  return result;
+};
+
+let hd720OrHighestVideo = videos => {
+  return videos
+    .filter(v => v.height <= 720)
+    .filter(v => v.height <= -~width * pixR)
+    .sort((a, b) => (a.height < b.height ? -1 : 1))
+    .pop();
+};
+
 export { offlineContent };
