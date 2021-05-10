@@ -172,7 +172,9 @@ export default class Download_V2 extends React.PureComponent {
   };
 
   deref = async () => {
-    let content = await this.props.entity.content;
+    let content =
+      (await this.props.entity.content?.(this.props.entity.id, true)) ||
+      this.props.entity.content;
     if (Object.keys(content).length === 1) content = content.data[0];
     let lesson = content?.lessons?.length ? undefined : content;
     if (
