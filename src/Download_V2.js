@@ -473,12 +473,14 @@ export default class Download_V2 extends React.PureComponent {
             let extension = r.resource_url.split('.').pop();
             let url = r.resource_url;
             let id = `${r.resource_id}.${extension}`;
-            this.downloadItem(id, url, `${publicPath}/${r.title || ''}`).then(
-              resource_url => {
-                r.resource_url = resource_url;
-                res();
-              }
-            );
+            this.downloadItem(
+              id,
+              url,
+              `${publicPath}/${r.title?.replace(/"/g, `''`) || ''}`
+            ).then(resource_url => {
+              r.resource_url = resource_url;
+              res();
+            });
           })
       );
   };
@@ -540,6 +542,7 @@ export default class Download_V2 extends React.PureComponent {
                 { cancelable: false }
               );
             }
+            if (e === 'REQUEST_NOT_SUCCESSFUL') done.call(this, oc, taskId);
           });
         this.tasks.push(task);
         allDownloads.push(task);
