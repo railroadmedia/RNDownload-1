@@ -266,7 +266,8 @@ export default class Download_V2 extends React.PureComponent {
 
   download = async () => {
     this.setState({ status: 'Downloading' });
-    if (!(await this.deref())) return;
+    this.deletePromise = new Promise(async res => res(!(await this.deref())));
+    if (!(await this.deletePromise)) return;
     let lessons = offlineContent[this.id].overview?.lessons.filter(
       l => !Object.values(offlineContent).some(oc => oc.id === l.id)
     ) || [offlineContent[this.id].lesson];
@@ -810,13 +811,14 @@ const fetchExpectedBytes = (oc, dlding) => {
   }
 };
 
-const deleteLesson = function (id) {
+const deleteLesson = async function (id) {
+  this.setState?.({ status: 'Download' });
+  await this.deletePromise;
   let oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc =>
       offc.overview.lessons.some(l => l.id === id)
     );
-  this.setState?.({ status: 'Download' });
   let overviewContainingLesson = Object.values(offlineContent).find(oc =>
     oc.overview?.lessons.some(l => l.id === id)
   );
