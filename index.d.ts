@@ -21,7 +21,7 @@ declare module 'RNDownload' {
   interface DownloadProps {
     entity: {
       id: number;
-      comments: Comment[];
+      comments?: Comment[];
       content: Promise<{}>;
     };
     styles: {
