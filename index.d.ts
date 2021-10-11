@@ -66,9 +66,36 @@ declare module 'RNDownload' {
     onClose: () => void;
   }
 
-  class Download_V2 extends React.Component<DownloadProps, {}> {}
+  interface Downloading {
+    destination: string;
+    id: string;
+    url: string;
+  }
+
+  type DownloadSubscription = {
+    remove: () => void;
+  };
+
+  class Download_V2 extends React.Component<DownloadProps, {}> {
+    static addEventListener: (callBack: Function) => DownloadSubscription;
+  }
+
+  interface IOfflineContent {
+    dlded: string[];
+    dlding: Downloading[];
+    id: number;
+    sizeInBytes: number;
+    lesson: {
+      id: number;
+      mobile_app_url: string;
+      published_on: string;
+      type: string;
+    };
+  }
+
+  const offlineContent: Record<number, IOfflineContent>;
 
   class DownloadResources extends React.Component<DownloadResourcesProps, {}> {}
 
-  export { Download_V2, DownloadResources };
+  export { Download_V2, DownloadResources, offlineContent, IOfflineContent };
 }
