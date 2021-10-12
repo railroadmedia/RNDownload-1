@@ -18,18 +18,27 @@ declare module 'RNDownload' {
     };
   }
 
+  interface Lesson {
+    id: number;
+    mobile_app_url: string;
+    published_on: string;
+    type: string;
+  }
+
   interface DownloadProps {
-    entity: {
-      id: number;
-      comments?: Comment[];
-      content: Promise<{}>;
-    };
+    entity:
+      | {
+          id?: number;
+          comments?: Comment[];
+          content: {};
+        }
+      | {};
     styles: {
       touchable: StyleProp<ViewStyle>;
       iconDownloadColor: string;
       activityIndicatorColor: string;
       animatedProgressBackground: string;
-      textStatus: StyleProp<ViewStyle>;
+      textStatus?: StyleProp<ViewStyle>;
       alert: {
         alertTextMessageFontFamily: string;
         alertTouchableTextDeleteColor: string;
@@ -43,6 +52,7 @@ declare module 'RNDownload' {
         alertTouchableTextCancelFontFamily: string;
       };
     };
+    onDone?: () => void;
   }
 
   export interface Resource {
@@ -66,7 +76,7 @@ declare module 'RNDownload' {
     onClose: () => void;
   }
 
-  interface Downloading {
+  interface IDownloading {
     destination: string;
     id: string;
     url: string;
@@ -78,24 +88,27 @@ declare module 'RNDownload' {
 
   class Download_V2 extends React.Component<DownloadProps, {}> {
     static addEventListener: (callBack: Function) => DownloadSubscription;
+    static resumeAll: () => Promise<any>;
   }
 
   interface IOfflineContent {
     dlded: string[];
-    dlding: Downloading[];
+    dlding: IDownloading[];
     id: number;
     sizeInBytes: number;
-    lesson: {
-      id: number;
-      mobile_app_url: string;
-      published_on: string;
-      type: string;
-    };
+    lesson: any;
+    overview?: any;
   }
 
   const offlineContent: Record<number, IOfflineContent>;
 
   class DownloadResources extends React.Component<DownloadResourcesProps, {}> {}
 
-  export { Download_V2, DownloadResources, offlineContent, IOfflineContent };
+  export {
+    Download_V2,
+    DownloadResources,
+    offlineContent,
+    IOfflineContent,
+    IDownloading
+  };
 }
