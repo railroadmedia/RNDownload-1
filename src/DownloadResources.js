@@ -35,7 +35,7 @@ const downloadRes = (
     let isiOS = Platform.OS === 'ios';
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
-      ? `${dirs.DocumentDir}/${lessonTitle}/${resource.resource_id}.${resource.extension}`
+      ? `${dirs.DocumentDir}/${lessonTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'')}/${resource.resource_id}.${resource.extension}`
       : `${dirs.DownloadDir}/${lessonTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'')}/${resource.resource_id}.${resource.extension}`;
     let exists = await RNFetchBlob.fs.exists(filePath);
     if (exists) {
@@ -59,7 +59,7 @@ const downloadRes = (
           });
           this[id] = fetchConf.fetch(
             'GET',
-            resource.resource_url.replace(/ /g, '%20')
+            encodeURI(resource.resource_url)
           );
           this[id]
             .progress((received, total) => {
@@ -143,7 +143,7 @@ const downloadRes = (
                   };
                   let fetchConf = RNFetchBlob.config(options);
                   fetchConf
-                    .fetch('GET', resource.resource_url.replace(/ /g, '%20'))
+                    .fetch('GET', encodeURI(resource.resource_url))
                     .then(fetchResp => {
                       resolve();
                       if (!notOppeningAfterDld) {
