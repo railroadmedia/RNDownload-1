@@ -33,10 +33,22 @@ const downloadRes = (
   if (cancel) return this[id].cancel(() => {});
   return new Promise(async (resolve, reject) => {
     let isiOS = Platform.OS === 'ios';
+    let resourceUrl;
+    if (decodeURI(resource.resource_url) === resource.resource_url) {
+      resourceUrl = encodeURI(resource.resource_url);
+    } else {
+      resourceUrl = resource.resource_url;
+    }
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
-      ? `${dirs.DocumentDir}/${lessonTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'')}/${resource.resource_id}.${resource.extension}`
-      : `${dirs.DownloadDir}/${lessonTitle.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'')}/${resource.resource_id}.${resource.extension}`;
+      ? `${dirs.DocumentDir}/${lessonTitle.replace(
+          /[&\/\\#,+()$~%.'":*?<>{}]/g,
+          ''
+        )}/${resource.resource_id}.${resource.extension}`
+      : `${dirs.DownloadDir}/${lessonTitle.replace(
+          /[&\/\\#,+()$~%.'":*?<>{}]/g,
+          ''
+        )}/${resource.resource_id}.${resource.extension}`;
     let exists = await RNFetchBlob.fs.exists(filePath);
     if (exists) {
       resolve();
@@ -57,10 +69,7 @@ const downloadRes = (
             fileCache: true,
             path: filePath
           });
-          this[id] = fetchConf.fetch(
-            'GET',
-            encodeURI(resource.resource_url)
-          );
+          this[id] = fetchConf.fetch('GET', resourceUrl);
           this[id]
             .progress((received, total) => {
               if (!notEmmitingProgress)
@@ -143,7 +152,7 @@ const downloadRes = (
                   };
                   let fetchConf = RNFetchBlob.config(options);
                   fetchConf
-                    .fetch('GET', encodeURI(resource.resource_url))
+                    .fetch('GET', resourceUrl)
                     .then(fetchResp => {
                       resolve();
                       if (!notOppeningAfterDld) {
