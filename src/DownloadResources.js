@@ -28,7 +28,9 @@ const downloadRes = (
   id,
   notEmmitingProgress,
   notOppeningAfterDld,
-  cancel
+  cancel,
+  isConnected,
+  showNoConnectionAlert
 ) => {
   if (cancel) return this[id].cancel(() => {});
   return new Promise(async (resolve, reject) => {
@@ -63,6 +65,9 @@ const downloadRes = (
         }
       }
     } else {
+      if (!isConnected) {
+        return showNoConnectionAlert();
+      }
       if (isiOS) {
         try {
           let fetchConf = RNFetchBlob.config({
@@ -236,7 +241,9 @@ export default class DownloadResources extends React.Component {
       resources,
       maxFontMultiplier,
       styles: propStyle,
-      lessonTitle
+      lessonTitle,
+      isConnected,
+      showNoConnectionAlert
     } = this.props;
     return (
       <View style={propStyle.container}>
@@ -255,7 +262,16 @@ export default class DownloadResources extends React.Component {
                 }}
                 onPress={async () => {
                   await this.props.onClose();
-                  downloadRes(resource, lessonTitle, index);
+                  downloadRes(
+                    resource,
+                    lessonTitle,
+                    index,
+                    undefined,
+                    undefined,
+                    undefined,
+                    isConnected,
+                    showNoConnectionAlert
+                  );
                 }}
               >
                 <View style={{ flexDirection: 'row' }}>
