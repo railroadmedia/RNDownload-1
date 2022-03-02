@@ -748,37 +748,94 @@ const getOfflineContent = () =>
       Promise.all(
         Object.values(ofc).map(oc => {
           oldUuid = oc.dlded[0].substr(oc.dlded[0].indexOf('Application/') + 12, 36);
+
           if (oldUuid === newUuid) return res({ [oc.id]: oc });
+
           return {
             [oc.id]: {
               ...oc,
               dlded: oc.dlded.map(d => {
-                return oldUuid !== newUuid ? d.replace(oldUuid, newUuid) : d;
+                return oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d;
               }),
-              lesson: {
+              overview: oc.overview && {
+                ...oc.overview,
+                lessons: oc.overview?.lessons.map(l => {
+                  return {
+                    ...l,
+                    assignments: l?.assignments?.map(a => {
+                      return {
+                        ...a,
+                        sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
+                          return {
+                            ...sheet,
+                            value: sheet.value.replace(oldUuid, newUuid),
+                          };
+                        }),
+                      };
+                    }),
+                    comments: l?.comments?.map(c => {
+                      return {
+                        ...c,
+                        user: {
+                          ...c.user,
+                          'fields.profile_picture_image_url': c.user[
+                            'fields.profile_picture_image_url'
+                          ]?.replace(oldUuid, newUuid),
+                        },
+                      };
+                    }),
+                    related_lessons: l?.related_lessons.map(rl => {
+                      return {
+                        ...rl,
+                        thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
+                      };
+                    }),
+                    thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
+                    video_playback_endpoints: l?.video_playback_endpoints.map(vpe => {
+                      return {
+                        ...vpe,
+                        file: vpe.file?.replace(oldUuid, newUuid),
+                      };
+                    }),
+                  };
+                }),
+                thumbnail_url: oc.overview?.thumbnail_url?.replace(oldUuid, newUuid),
+              },
+              lesson: oc.lesson && {
                 ...oc.lesson,
-                comments: oc.lesson.comments.map(c => {
+                assignments: oc.lesson?.assignments?.map(a => {
+                  return {
+                    ...a,
+                    sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
+                      return {
+                        ...sheet,
+                        value: sheet.value.replace(oldUuid, newUuid),
+                      };
+                    }),
+                  };
+                }),
+                comments: oc.lesson?.comments?.map(c => {
                   return {
                     ...c,
                     user: {
                       ...c.user,
                       'fields.profile_picture_image_url': c.user[
                         'fields.profile_picture_image_url'
-                      ].replace(oldUuid, newUuid),
+                      ]?.replace(oldUuid, newUuid),
                     },
                   };
                 }),
-                related_lessons: oc.lesson.related_lessons.map(rl => {
+                related_lessons: oc.lesson?.related_lessons.map(rl => {
                   return {
                     ...rl,
-                    thumbnail_url: rl.thumbnail_url.replace(oldUuid, newUuid),
+                    thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
                   };
                 }),
-                thumbnail_url: oc.lesson.thumbnail_url.replace(oldUuid, newUuid),
-                video_playback_endpoints: oc.lesson.video_playback_endpoints.map(vpe => {
+                thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
+                video_playback_endpoints: oc.lesson?.video_playback_endpoints.map(vpe => {
                   return {
                     ...vpe,
-                    file: vpe.file.replace(oldUuid, newUuid),
+                    file: vpe.file?.replace(oldUuid, newUuid),
                   };
                 }),
               },
