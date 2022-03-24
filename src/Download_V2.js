@@ -183,7 +183,7 @@ export default class Download_V2 extends React.PureComponent {
         ?.find(f => f.key === 'video')
         ?.value?.type?.toLowerCase()
         ?.includes('youtube') ||
-      content.lessons.find(l => l.youtube_video_id)
+      content?.lessons?.find?.(l => l.youtube_video_id)
     ) {
       this.setState({ status: 'Download' });
       return Alert.alert(
