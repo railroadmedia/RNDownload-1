@@ -182,12 +182,13 @@ export default class Download_V2 extends React.PureComponent {
       lesson?.fields
         ?.find(f => f.key === 'video')
         ?.value?.type?.toLowerCase()
-        ?.includes('youtube')
+        ?.includes('youtube') ||
+      content?.lessons?.find?.(l => l.youtube_video_id)
     ) {
       this.setState({ status: 'Download' });
       return Alert.alert(
         'Copyrighted material',
-        'This video contains copyrighted material and is not available for offline viewing.',
+        `This ${lesson ? 'video' : 'course'} contains copyrighted material and is not available for offline viewing.`,
         [{ text: 'OK' }],
         { cancelable: false }
       );
