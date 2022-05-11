@@ -56,16 +56,17 @@ export default class Download_V2 extends React.PureComponent {
       RNFetchBlob.fs.dirs.LibraryDir ||
       RNFetchBlob.fs.dirs.DocumentDir;
     this.id = props.entity.id;
+    this.brand = props.brand;
   }
 
   componentDidMount() {
     this.resumeThis();
-    AppState.addEventListener('change', this.handleAppState);
+    this.appStateListener = AppState.addEventListener('change', this.handleAppState);
   }
 
   componentWillUnmount() {
     this.listenForLargestFile?.remove?.();
-    AppState.removeEventListener('change', this.handleAppState);
+    this.appStateListener?.remove()
   }
 
   static addEventListener(callback) {
@@ -91,7 +92,7 @@ export default class Download_V2 extends React.PureComponent {
     DeviceEventEmitter.addListener('dldProgress', progressListener);
     return {
       remove: () =>
-        DeviceEventEmitter.removeListener('dldProgress', progressListener)
+      DeviceEventEmitter.removeAllListeners()
     };
   }
 
@@ -183,7 +184,7 @@ export default class Download_V2 extends React.PureComponent {
         ?.find(f => f.key === 'video')
         ?.value?.type?.toLowerCase()
         ?.includes('youtube') ||
-      content?.lessons?.find?.(l => l.youtube_video_id)
+      content?.lessons?.find?.(l => l.youtube_video_id)  
     ) {
       this.setState({ status: 'Download' });
       return Alert.alert(
@@ -212,12 +213,12 @@ export default class Download_V2 extends React.PureComponent {
       id: this.id
     };
 
-    if (lesson) offlineContent[this.id].lesson = derefLesson(lesson, comments);
+    if (lesson) offlineContent[this.id].lesson = derefLesson(lesson, comments, this.brand);
 
     if (overview) {
       offlineContent[this.id].overview = {
         ...overview,
-        lessons: overview.lessons.map(l => derefLesson(l))
+        lessons: overview.lessons.map(l => derefLesson(l, undefined, this.brand))
       };
       if (overview.data)
         overview.data = [
@@ -1033,6 +1034,7 @@ const handleOldOfflineFormat = () => {
                 ? oc[k].dlded.find(dld => dld.includes(d.value))
                 : 'd.value'
           })),
+          brand: this.brand,
           lessons: entity.lessons.map(l => ({
             ...l,
             comments: commentsHandle(l.comments),
@@ -1048,6 +1050,7 @@ const handleOldOfflineFormat = () => {
       } else {
         oc[k].lesson = {
           ...entity,
+          brand: this.brand,
           comments: commentsHandle(oc[k].comments),
           data: thumbHandle(entity.data),
           assignments: assignmentsHandle(entity.assignments),
@@ -1068,6 +1071,7 @@ const handleOldOfflineFormat = () => {
       lesson.difficulty =
         lesson.difficulty ||
         lesson.fields?.find(f => f.key === 'difficulty')?.value;
+      lesson.brand = this.brand;
       lesson.title =
         lesson.title || lesson.fields?.find(f => f.key === 'title')?.value;
       lesson.description =
@@ -1120,9 +1124,10 @@ const handleOldOfflineFormat = () => {
   });
 };
 
-let derefLesson = (lesson, comments) => {
+let derefLesson = (lesson, comments, brand) => {
   let result = {
     ...lesson,
+    brand,
     video_playback_endpoints: [
       {
         ...hd720OrHighestVideo(lesson.video_playback_endpoints)
