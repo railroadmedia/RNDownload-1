@@ -26,6 +26,7 @@ declare module 'RNDownload' {
   }
 
   interface DownloadProps {
+    brand: string;
     entity:
       | {
           id?: number;
