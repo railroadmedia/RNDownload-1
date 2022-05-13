@@ -61,12 +61,12 @@ export default class Download_V2 extends React.PureComponent {
 
   componentDidMount() {
     this.resumeThis();
-    this.appStateListener = AppState.addEventListener('change', this.handleAppState);
+    AppState.addEventListener('change', this.handleAppState);
   }
 
   componentWillUnmount() {
     this.listenForLargestFile?.remove?.();
-    this.appStateListener?.remove()
+    AppState.removeEventListener('change', this.handleAppState);
   }
 
   static addEventListener(callback) {
@@ -91,8 +91,7 @@ export default class Download_V2 extends React.PureComponent {
     };
     DeviceEventEmitter.addListener('dldProgress', progressListener);
     return {
-      remove: () =>
-      DeviceEventEmitter.removeAllListeners()
+      remove: () => DeviceEventEmitter.removeListener('dldProgress', progressListener)
     };
   }
 
@@ -218,6 +217,7 @@ export default class Download_V2 extends React.PureComponent {
     if (overview) {
       offlineContent[this.id].overview = {
         ...overview,
+        brand: this.brand,
         lessons: overview.lessons.map(l => derefLesson(l, undefined, this.brand))
       };
       if (overview.data)
@@ -748,25 +748,25 @@ const getOfflineContent = () =>
       let oldUuid;
 
       Promise.all(
-        Object.values(ofc).map(oc => {
-          oldUuid = oc.dlded[0].substr(oc.dlded[0].indexOf('Application/') + 12, 36);
+        Object.values(ofc)?.map(oc => {
+          oldUuid = oc.dlded[0]?.substr(oc.dlded[0].indexOf('Application/') + 12, 36);
           if (oldUuid === newUuid) return { [oc.id]: oc };
 
           return {
             [oc.id]: {
               ...oc,
-              dlded: oc.dlded.map(d => {
+              dlded: oc.dlded?.map(d => {
                 return oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d;
               }),
               overview: oc.overview && {
                 ...oc.overview,
-                lessons: oc.overview?.lessons.map(l => {
+                lessons: oc.overview?.lessons?.map(l => {
                   return {
                     ...l,
                     assignments: l?.assignments?.map(a => {
                       return {
                         ...a,
-                        sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
+                        sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
                           return {
                             ...sheet,
                             value: sheet.value.replace(oldUuid, newUuid),
@@ -785,14 +785,14 @@ const getOfflineContent = () =>
                         },
                       };
                     }),
-                    related_lessons: l?.related_lessons.map(rl => {
+                    related_lessons: l?.related_lessons?.map(rl => {
                       return {
                         ...rl,
                         thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
                       };
                     }),
                     thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                    video_playback_endpoints: l?.video_playback_endpoints.map(vpe => {
+                    video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => {
                       return {
                         ...vpe,
                         file: vpe.file?.replace(oldUuid, newUuid),
@@ -1034,7 +1034,6 @@ const handleOldOfflineFormat = () => {
                 ? oc[k].dlded.find(dld => dld.includes(d.value))
                 : 'd.value'
           })),
-          brand: this.brand,
           lessons: entity.lessons.map(l => ({
             ...l,
             comments: commentsHandle(l.comments),
