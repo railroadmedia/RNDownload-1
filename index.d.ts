@@ -75,6 +75,8 @@ declare module 'RNDownload' {
       color?: string;
     };
     onClose: () => void;
+    isConnected: boolean;
+    showNoConnectionAlert: () => void;
   }
 
   interface IDownloading {
