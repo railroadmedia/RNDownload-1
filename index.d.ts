@@ -31,9 +31,9 @@ declare module 'RNDownload' {
       | {
           id?: number;
           comments?: Comment[];
-          content: {};
         }
       | {};
+    getDownloadContent?: any,
     styles: {
       touchable: StyleProp<ViewStyle>;
       iconDownloadColor: string;

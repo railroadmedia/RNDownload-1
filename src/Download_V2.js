@@ -172,9 +172,7 @@ export default class Download_V2 extends React.PureComponent {
   };
 
   deref = async () => {
-    let content = await (typeof this.props.entity === 'function'
-      ? this.props.entity.content?.(this.props.entity.id, true)
-      : this.props.entity.content);
+    let content = await (this.props.getDownloadContent());
     if (Object.keys(content).length === 1) content = content.data[0];
     let lesson = content?.lessons?.length ? undefined : content;
     if (
@@ -748,25 +746,25 @@ const getOfflineContent = () =>
       let oldUuid;
 
       Promise.all(
-        Object.values(ofc)?.map(oc => {
-          oldUuid = oc.dlded[0]?.substr(oc.dlded[0].indexOf('Application/') + 12, 36);
+        Object.values(ofc).map(oc => {
+          oldUuid = oc.dlded[0].substr(oc.dlded[0].indexOf('Application/') + 12, 36);
           if (oldUuid === newUuid) return { [oc.id]: oc };
 
           return {
             [oc.id]: {
               ...oc,
-              dlded: oc.dlded?.map(d => {
+              dlded: oc.dlded.map(d => {
                 return oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d;
               }),
               overview: oc.overview && {
                 ...oc.overview,
-                lessons: oc.overview?.lessons?.map(l => {
+                lessons: oc.overview?.lessons.map(l => {
                   return {
                     ...l,
                     assignments: l?.assignments?.map(a => {
                       return {
                         ...a,
-                        sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
+                        sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
                           return {
                             ...sheet,
                             value: sheet.value.replace(oldUuid, newUuid),
@@ -785,14 +783,14 @@ const getOfflineContent = () =>
                         },
                       };
                     }),
-                    related_lessons: l?.related_lessons?.map(rl => {
+                    related_lessons: l?.related_lessons.map(rl => {
                       return {
                         ...rl,
                         thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
                       };
                     }),
                     thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                    video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => {
+                    video_playback_endpoints: l?.video_playback_endpoints.map(vpe => {
                       return {
                         ...vpe,
                         file: vpe.file?.replace(oldUuid, newUuid),
@@ -1049,7 +1047,6 @@ const handleOldOfflineFormat = () => {
       } else {
         oc[k].lesson = {
           ...entity,
-          brand: this.brand,
           comments: commentsHandle(oc[k].comments),
           data: thumbHandle(entity.data),
           assignments: assignmentsHandle(entity.assignments),
@@ -1070,7 +1067,6 @@ const handleOldOfflineFormat = () => {
       lesson.difficulty =
         lesson.difficulty ||
         lesson.fields?.find(f => f.key === 'difficulty')?.value;
-      lesson.brand = this.brand;
       lesson.title =
         lesson.title || lesson.fields?.find(f => f.key === 'title')?.value;
       lesson.description =
