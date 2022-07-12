@@ -34,6 +34,7 @@ width = width < height ? width : height;
 
 const pixR = PixelRatio.get();
 const isiOS = Platform.OS === 'ios';
+export const FONT_MULTIPLIER = width < 375 ? 1 : width < 1024 ? 1.35 : 1.8;
 
 export default class Download_V2 extends React.PureComponent {
   id = '';
@@ -605,7 +606,7 @@ export default class Download_V2 extends React.PureComponent {
             }}
           >
             {propStyle?.textStatus && (
-              <Text maxFontSizeMultiplier={1.1} style={propStyle?.textStatus}>
+              <Text maxFontSizeMultiplier={FONT_MULTIPLIER} style={propStyle?.textStatus}>
                 {status}
               </Text>
             )}
