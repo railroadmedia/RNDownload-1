@@ -740,21 +740,21 @@ const getOfflineContent = () =>
         await RNFetchBlob.fs.readFile(`${securedPath}/offlineContent`, 'utf8')
       );
       if (!isiOS) return res(ofc);
-      const newUuid = securedPath.substring(
+      const newUuid = securedPath?.substring(
         securedPath.indexOf('Application/') + 12,
         securedPath.indexOf('/Library')
       );
       let oldUuid;
 
       Promise.all(
-        Object.values(ofc).map(oc => {
-          oldUuid = oc.dlded[0].substr(oc.dlded[0].indexOf('Application/') + 12, 36);
+        Object.values(ofc)?.map(oc => {
+          oldUuid = oc.dlded[0]?.substr(oc.dlded[0].indexOf('Application/') + 12, 36);
           if (oldUuid === newUuid) return { [oc.id]: oc };
 
           return {
             [oc.id]: {
               ...oc,
-              dlded: oc.dlded.map(d => {
+              dlded: oc.dlded?.map(d => {
                 return oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d;
               }),
               overview: oc.overview && {
@@ -806,7 +806,7 @@ const getOfflineContent = () =>
                 assignments: oc.lesson?.assignments?.map(a => {
                   return {
                     ...a,
-                    sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
+                    sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
                       return {
                         ...sheet,
                         value: sheet.value.replace(oldUuid, newUuid),
