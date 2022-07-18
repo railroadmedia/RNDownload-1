@@ -354,3 +354,5 @@ export default class DownloadResources extends React.Component {
     );
   }
 }
+
+export { downloadRes };
