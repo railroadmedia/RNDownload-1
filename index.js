@@ -1,4 +1,4 @@
 import Download_V2, { offlineContent } from './src/Download_V2';
-import DownloadResources from './src/DownloadResources';
+import DownloadResources, { downloadRes } from './src/DownloadResources';
 
-export { Download_V2, DownloadResources, offlineContent };
+export { Download_V2, DownloadResources, offlineContent, downloadRes };

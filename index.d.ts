@@ -33,7 +33,7 @@ declare module 'RNDownload' {
           comments?: Comment[];
         }
       | {};
-    getDownloadContent?: any,
+    getDownloadContent?: any;
     styles: {
       touchable: StyleProp<ViewStyle>;
       iconDownloadColor: string;
@@ -107,10 +107,22 @@ declare module 'RNDownload' {
 
   class DownloadResources extends React.Component<DownloadResourcesProps, {}> {}
 
+  const downloadRes: (
+    resource: Resource,
+    lessonTitle: string,
+    id: number,
+    notEmmitingProgress: boolean,
+    notOppeningAfterDld: boolean,
+    cancel: boolean,
+    isConnected: boolean,
+    showNoConnectionAlert: () => void
+  ) => void;
+
   export {
     Download_V2,
     DownloadResources,
     offlineContent,
+    downloadRes,
     IOfflineContent,
     IDownloading
   };
