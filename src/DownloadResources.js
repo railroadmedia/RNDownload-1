@@ -233,7 +233,7 @@ export default class DownloadResources extends React.Component {
   }
 
   static removeProgressListener(callback) {
-    DeviceEventEmitter.removeListener('dldProgress', callback);
+    DeviceEventEmitter.removeAllListeners('dldProgress', callback);
   }
 
   render() {
