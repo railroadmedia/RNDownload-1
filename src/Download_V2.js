@@ -62,12 +62,12 @@ export default class Download_V2 extends React.PureComponent {
 
   componentDidMount() {
     this.resumeThis();
-    AppState.addEventListener('change', this.handleAppState);
+    this.appEventListener =  AppState.addEventListener('change', this.handleAppState);
   }
 
   componentWillUnmount() {
     this.listenForLargestFile?.remove?.();
-    AppState.removeEventListener('change', this.handleAppState);
+    this.appEventListener?.remove?.();
   }
 
   static addEventListener(callback) {
@@ -92,7 +92,7 @@ export default class Download_V2 extends React.PureComponent {
     };
     DeviceEventEmitter.addListener('dldProgress', progressListener);
     return {
-      remove: () => DeviceEventEmitter.removeListener('dldProgress', progressListener)
+      remove: () => DeviceEventEmitter.removeAllListeners('dldProgress', progressListener)
     };
   }
 
@@ -167,7 +167,7 @@ export default class Download_V2 extends React.PureComponent {
       if (this.tasks?.length && !this.tasks?.some(t => t.state !== 'DONE'))
         this.setState({ status: 'Downloaded' });
       let oc = offlineContent[this.id];
-      let largestDld = this.tasks.find(t => t.id === oc.fileSizes.largestFile);
+      let largestDld = this.tasks.find(t => t.id === oc?.fileSizes.largestFile);
       largestDld?.progress(p => progress.call(this, p, oc, largestDld));
     }
   };

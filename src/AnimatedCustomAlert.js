@@ -2,12 +2,16 @@
 
 import React from 'react';
 import {
+  View,
   Text,
   Modal,
   Animated,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  SafeAreaView
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import DeviceInfo from 'react-native-device-info';
 
 export default class AnimatedCustomAlert extends React.PureComponent {
   state = {
@@ -41,11 +45,11 @@ export default class AnimatedCustomAlert extends React.PureComponent {
         onRequestClose={this.toggle}
         supportedOrientations={['portrait', 'landscape']}
       >
-        <TouchableOpacity
-          onPress={this.toggle}
-          testID='modalBackground'
-          style={styles.modalBackground}
-        >
+        <LinearGradient
+          style={styles.lgradient}
+          colors={['rgba(0, 12, 23, 0.69)', 'rgba(0, 12, 23, 1)']}
+        />
+        <SafeAreaView testID='modalBackground' style={styles.modalBackground}>
           <Animated.View
             style={[
               styles.animatedView,
@@ -56,77 +60,82 @@ export default class AnimatedCustomAlert extends React.PureComponent {
               }
             ]}
           >
-            <Text
-              maxFontSizeMultiplier={this.props.maxFontMultiplier}
-              testID='alertTitle'
-              style={{
-                fontSize: 20,
-                textAlign: 'center',
-                paddingVertical: 10,
-                fontFamily: propStyle?.textTitleFontFamily,
-                color: propStyle?.textTitleColor || 'black'
-              }}
-            >
-              {this.title}
-            </Text>
-            <Text
-              maxFontSizeMultiplier={this.props.maxFontMultiplier}
-              testID='alertMessage'
-              style={{
-                fontSize: 14,
-                textAlign: 'center',
-                paddingVertical: 10,
-                fontFamily: propStyle?.textMessageFontFamily,
-                color: propStyle?.textMessageColor || 'black'
-              }}
-            >
-              {this.message}
-            </Text>
-            <TouchableOpacity
-              testID='deleteBtn'
-              onPress={this.props.onDelete}
-              style={{
-                minHeight: 46,
-                marginTop: 10,
-                borderWidth: 2,
-                borderRadius: 25,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderColor: propStyle?.touchableDeleteBorderColor || 'black',
-                backgroundColor: propStyle?.touchableDeleteBackground || 'white'
-              }}
-            >
+            <View style={DeviceInfo.isTablet() && { height: '10%' }} />
+            <View style={styles.msgContainer}>
               <Text
                 maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                testID='alertTitle'
                 style={{
-                  padding: 15,
-                  fontSize: 15,
+                  fontSize: 24,
                   textAlign: 'center',
-                  color: propStyle?.touchableTextDeleteColor || 'black',
-                  fontFamily: propStyle?.touchableTextDeleteFontFamily
+                  fontFamily: propStyle?.textTitleFontFamily,
+                  color: propStyle?.textTitleColor || 'black'
                 }}
               >
-                DELETE
+                {this.title}
               </Text>
-            </TouchableOpacity>
+              <Text
+                maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                testID='alertMessage'
+                style={{
+                  fontSize: 16,
+                  textAlign: 'center',
+                  paddingVertical: 10,
+                  fontFamily: propStyle?.textMessageFontFamily,
+                  color: propStyle?.textMessageColor || 'black'
+                }}
+              >
+                {this.message}
+              </Text>
+              <TouchableOpacity
+                testID='deleteBtn'
+                onPress={this.props.onDelete}
+                style={{
+                  width: 200,
+                  marginTop: 10,
+                  borderWidth: 2,
+                  borderRadius: 25,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  borderColor: propStyle?.touchableDeleteBorderColor || 'black',
+                  backgroundColor:
+                    propStyle?.touchableDeleteBackground || 'white'
+                }}
+              >
+                <Text
+                  maxFontSizeMultiplier={this.props.maxFontMultiplier}
+                  style={{
+                    padding: 8,
+                    fontSize: 18,
+                    textAlign: 'center',
+                    color: propStyle?.touchableTextDeleteColor || 'black',
+                    fontFamily: propStyle?.touchableTextDeleteFontFamily
+                  }}
+                >
+                  DELETE
+                </Text>
+              </TouchableOpacity>
+              {this.props.additionalBtn}
+              {this.props.additionalTextBtn}
+            </View>
             <TouchableOpacity testID='cancelBtn' onPress={this.toggle}>
               <Text
                 maxFontSizeMultiplier={this.props.maxFontMultiplier}
                 style={{
-                  fontSize: 15,
-                  marginTop: 10,
+                  fontSize: 18,
+                  padding: 10,
+                  alignSelf: 'center',
                   textAlign: 'center',
                   color: propStyle?.touchableTextCancelColor || 'black',
                   fontFamily: propStyle?.touchableTextCancelFontFamily
                 }}
               >
-                CANCEL
+                Cancel
               </Text>
             </TouchableOpacity>
-            {this.props.additionalBtn}
-            {this.props.additionalTextBtn}
           </Animated.View>
-        </TouchableOpacity>
+        </SafeAreaView>
       </Modal>
     );
   }
@@ -134,14 +143,21 @@ export default class AnimatedCustomAlert extends React.PureComponent {
 
 const styles = StyleSheet.create({
   modalBackground: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,.5)'
+    flex: 1
+  },
+  lgradient: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    zIndex: 0
   },
   animatedView: {
-    padding: 10,
-    paddingHorizontal: 50,
-    borderRadius: 10
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+  msgContainer: {
+    alignSelf: 'center',
+    paddingHorizontal: '10%'
   }
 });
