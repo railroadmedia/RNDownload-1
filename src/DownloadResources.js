@@ -14,7 +14,7 @@ import {
 
 import RNFetchBlob from 'rn-fetch-blob';
 
-import { x, link, zip, mp3, mp4, pdf } from './img/svgs';
+import { zip, mp3, mp4, pdf } from './img/svgs';
 
 const getTypeByExtension = path => {
   if (path === 'mp3' || path.indexOf('mp3') > 0) return 'audio/mp3';
@@ -299,56 +299,8 @@ export default class DownloadResources extends React.Component {
                     {resource.resource_name}
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row' }}>
-                  <Text
-                    maxFontSizeMultiplier={maxFontMultiplier}
-                    style={{
-                      color: propStyle.color,
-                      fontSize: 12,
-                      marginRight: 10,
-                      fontFamily:
-                        propStyle?.touchableTextResourceExtensionFontFamily
-                    }}
-                  >
-                    {resource.extension?.toUpperCase()}
-                  </Text>
-                  {link({
-                    height: 12,
-                    width: 12,
-                    fill: propStyle.color
-                  })}
-                </View>
               </TouchableOpacity>
             ))}
-          <TouchableOpacity
-            onPress={this.props.onClose}
-            style={{
-              padding: 15,
-              flexDirection: 'row'
-            }}
-          >
-            <View
-              style={{
-                marginRight: 15
-              }}
-            >
-              {x({
-                height: 18,
-                width: 18,
-                fill: propStyle.color
-              })}
-            </View>
-            <Text
-              maxFontSizeMultiplier={maxFontMultiplier}
-              style={{
-                color: propStyle.color,
-                fontSize: 14,
-                fontFamily: propStyle?.touchableTextResourceCancelFontFamily
-              }}
-            >
-              Cancel
-            </Text>
-          </TouchableOpacity>
         </ScrollView>
       </View>
     );
