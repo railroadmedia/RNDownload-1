@@ -75,7 +75,7 @@ declare module 'RNDownload' {
       color?: string;
     };
     onClose: () => void;
-    isConnected: boolean;
+    isConnected: boolean | null;
     showNoConnectionAlert: () => void;
   }
 
