@@ -478,7 +478,10 @@ export default class Download_V2 extends React.PureComponent {
             this.downloadItem(
               id,
               url,
-              `${publicPath}/${r.title?.replace(/"/g, `''`) || ''}`
+              `${publicPath}/${r.title?.replace(
+                /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
+                ''
+              ) || ''}`
             ).then(resource_url => {
               r.resource_url = resource_url;
               res();

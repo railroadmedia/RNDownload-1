@@ -44,11 +44,11 @@ const downloadRes = (
     let dirs = RNFetchBlob.fs.dirs;
     const filePath = isiOS
       ? `${dirs.DocumentDir}/${lessonTitle.replace(
-          /[&\/\\#,+()$~%.'":*?<>{}]/g,
+          /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
         )}/${resource.resource_id}.${resource.extension}`
       : `${dirs.DownloadDir}/${lessonTitle.replace(
-          /[&\/\\#,+()$~%.'":*?<>{}]/g,
+          /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
         )}/${resource.resource_id}.${resource.extension}`;
     let exists = await RNFetchBlob.fs.exists(filePath);
