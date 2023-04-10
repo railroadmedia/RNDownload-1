@@ -15,7 +15,7 @@ import {
   DeviceEventEmitter
 } from 'react-native';
 
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util'
 import RNBackgroundDownloader from 'react-native-background-downloader';
 
 import AnimatedCustomAlert from './AnimatedCustomAlert';
@@ -51,11 +51,11 @@ export default class Download_V2 extends React.PureComponent {
 
     publicPath =
       props.publicPath ||
-      RNFetchBlob.fs.dirs[isiOS ? 'DocumentDir' : 'DownloadDir'];
+      ReactNativeBlobUtil.fs.dirs[isiOS ? 'DocumentDir' : 'DownloadDir'];
     securedPath =
       props.securedPath ||
-      RNFetchBlob.fs.dirs.LibraryDir ||
-      RNFetchBlob.fs.dirs.DocumentDir;
+      ReactNativeBlobUtil.fs.dirs.LibraryDir ||
+      ReactNativeBlobUtil.fs.dirs.DocumentDir;
     this.id = props.entity.id;
     this.brand = props.brand;
   }
@@ -97,9 +97,9 @@ export default class Download_V2 extends React.PureComponent {
   }
 
   static async resumeAll(
-    securedP = RNFetchBlob.fs.dirs.LibraryDir ||
-      RNFetchBlob.fs.dirs.DocumentDir,
-    publicP = RNFetchBlob.fs.dirs.DocumentDir
+    securedP = ReactNativeBlobUtil.fs.dirs.LibraryDir ||
+    ReactNativeBlobUtil.fs.dirs.DocumentDir,
+    publicP = ReactNativeBlobUtil.fs.dirs.DocumentDir
   ) {
     publicPath = publicP;
     securedPath = securedP;
@@ -134,7 +134,7 @@ export default class Download_V2 extends React.PureComponent {
               ?.done(() => done(oc, task.id, dlding))
               ?.error(e => {
                 if (e.includes('No such file or directory'))
-                  RNFetchBlob.fs
+                  ReactNativeBlobUtil.fs
                     .unlink(dlding.destination)
                     .then(restart)
                     .catch(restart);
@@ -153,7 +153,7 @@ export default class Download_V2 extends React.PureComponent {
               });
           };
           if (task && task.state === 'DONE' && !offlineFiles.includes(task.id))
-            RNFetchBlob.fs
+            ReactNativeBlobUtil.fs
               .unlink(dlding.destination)
               .then(restart)
               .catch(restart);
@@ -346,7 +346,7 @@ export default class Download_V2 extends React.PureComponent {
           let id = `${a.id}.${extension}`;
           this.downloadItem(id, url, securedPath).then(value => {
             a.value = value;
-            RNFetchBlob.fs
+            ReactNativeBlobUtil.fs
               .readFile(a.value)
               .then(result => {
                 let vb = result
@@ -530,7 +530,7 @@ export default class Download_V2 extends React.PureComponent {
           })
           .error(e => {
             if (e.includes('No such file or directory'))
-              RNFetchBlob.fs
+              ReactNativeBlobUtil.fs
                 .unlink(`${path}/${taskId}`)
                 .then(restart)
                 .catch(restart);
@@ -740,7 +740,7 @@ const getOfflineContent = () =>
   new Promise(async res => {
     try {
       let ofc = JSON.parse(
-        await RNFetchBlob.fs.readFile(`${securedPath}/offlineContent`, 'utf8')
+        await ReactNativeBlobUtil.fs.readFile(`${securedPath}/offlineContent`, 'utf8')
       );
       if (!isiOS) return res(ofc);
       const newUuid = securedPath?.substring(
@@ -858,7 +858,7 @@ const getOfflineContent = () =>
 const getPublicOfflineFiles = () =>
   new Promise(async res => {
     try {
-      res(await RNFetchBlob.fs.ls(publicPath));
+      res(await ReactNativeBlobUtil.fs.ls(publicPath));
     } catch (e) {
       res();
     }
@@ -867,7 +867,7 @@ const getPublicOfflineFiles = () =>
 const getSecuredOfflineFiles = () =>
   new Promise(async res => {
     try {
-      res(await RNFetchBlob.fs.ls(securedPath));
+      res(await ReactNativeBlobUtil.fs.ls(securedPath));
     } catch (e) {
       res();
     }
@@ -876,7 +876,7 @@ const getSecuredOfflineFiles = () =>
 const setOfflineContent = id => {
   if (id?.includes('.png') || id?.includes('.jpg') || id?.includes('.jpeg'))
     return;
-  RNFetchBlob.fs
+    ReactNativeBlobUtil.fs
     .writeFile(
       `${securedPath}/offlineContent`,
       JSON.stringify(offlineContent),
@@ -961,7 +961,7 @@ const deleteLesson = async function (id) {
         tbd.pop();
         tbd = tbd.join('/');
       }
-      return RNFetchBlob.fs.unlink(tbd).catch(() => {});
+      return ReactNativeBlobUtil.fs.unlink(tbd).catch(() => {});
     });
   }
   if (this.tasks) this.tasks = [];

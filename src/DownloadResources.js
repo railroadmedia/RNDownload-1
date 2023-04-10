@@ -12,7 +12,7 @@ import {
   DeviceEventEmitter
 } from 'react-native';
 
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util'
 
 import { zip, mp3, mp4, pdf } from './img/svgs';
 
@@ -41,7 +41,7 @@ const downloadRes = (
     } else {
       resourceUrl = resource.resource_url;
     }
-    let dirs = RNFetchBlob.fs.dirs;
+    let dirs = ReactNativeBlobUtil.fs.dirs;
     const filePath = isiOS
       ? `${dirs.DocumentDir}/${lessonTitle.replace(
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
@@ -51,14 +51,14 @@ const downloadRes = (
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
         )}/${resource.resource_id}.${resource.extension}`;
-    let exists = await RNFetchBlob.fs.exists(filePath);
+    let exists = await ReactNativeBlobUtil.fs.exists(filePath);
     if (exists) {
       resolve();
       if (!notOppeningAfterDld) {
         if (isiOS)
-          setTimeout(() => RNFetchBlob.ios.openDocument(filePath), 1000);
+          setTimeout(() => ReactNativeBlobUtil.ios.openDocument(filePath), 1000);
         else {
-          RNFetchBlob.android.actionViewIntent(
+          ReactNativeBlobUtil.android.actionViewIntent(
             filePath,
             getTypeByExtension(filePath)
           );
@@ -70,7 +70,7 @@ const downloadRes = (
       }
       if (isiOS) {
         try {
-          let fetchConf = RNFetchBlob.config({
+          let fetchConf = ReactNativeBlobUtil.config({
             fileCache: true,
             path: filePath
           });
@@ -91,11 +91,11 @@ const downloadRes = (
                   val: undefined
                 });
               if (!getTypeByExtension(filePath))
-                RNFetchBlob.fs
+                ReactNativeBlobUtil.fs
                   .mv(res.data, `${res.data}${resource.extension}`)
                   .then(() => {
                     if (!notOppeningAfterDld)
-                      RNFetchBlob.ios.openDocument(
+                    ReactNativeBlobUtil.ios.openDocument(
                         `${res.data}${resource.extension}`
                       );
                   })
@@ -103,7 +103,7 @@ const downloadRes = (
                     reject();
                   });
               else if (!notOppeningAfterDld)
-                RNFetchBlob.ios.openDocument(res.data);
+                ReactNativeBlobUtil.ios.openDocument(res.data);
             })
             .catch(e => {
               reject();
@@ -113,7 +113,7 @@ const downloadRes = (
                 [{ text: 'OK' }],
                 { cancelable: false }
               );
-              RNFetchBlob.fs.unlink(filePath);
+              ReactNativeBlobUtil.fs.unlink(filePath);
             });
         } catch (e) {
           resolve();
@@ -131,7 +131,7 @@ const downloadRes = (
             }
           );
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            RNFetchBlob.fs.df().then(info => {
+            ReactNativeBlobUtil.fs.df().then(info => {
               let { free, internal_free, external_free } = info;
               let freeSpaceInMb =
                 (free || Math.max(internal_free, external_free)) / 1024 / 1024;
@@ -155,7 +155,7 @@ const downloadRes = (
                       description: 'Downloading'
                     }
                   };
-                  let fetchConf = RNFetchBlob.config(options);
+                  let fetchConf = ReactNativeBlobUtil.config(options);
                   fetchConf
                     .fetch('GET', resourceUrl)
                     .then(fetchResp => {
@@ -165,10 +165,10 @@ const downloadRes = (
                           resource.extension
                         );
                         if (resource.wasWithoutExtension) {
-                          RNFetchBlob.fs
+                          ReactNativeBlobUtil.fs
                             .mv(filePath, `${filePath}${resource.extension}`)
                             .then(() => {
-                              RNFetchBlob.android.actionViewIntent(
+                              ReactNativeBlobUtil.android.actionViewIntent(
                                 `${filePath}${resource.extension}`,
                                 extension
                               );
@@ -177,7 +177,7 @@ const downloadRes = (
                               reject();
                             });
                         } else {
-                          RNFetchBlob.android.actionViewIntent(
+                          ReactNativeBlobUtil.android.actionViewIntent(
                             filePath,
                             extension
                           );

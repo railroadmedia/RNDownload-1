@@ -8,7 +8,7 @@ Download functionality, based on [react-native-background-downloader](https://gi
 * Custom download button with progress
 * Whole lesson download (text, media, resources, comments)
 ## Libraries used
-* [rn-fetch-blob](https://github.com/joltup/rn-fetch-blob)
+* [react-native-blob-util](https://github.com/RonRadtke/react-native-blob-util)
 * [react-native-svg](https://github.com/react-native-community/react-native-svg)
 * [@react-native-community/netinfo](https://github.com/react-native-community/react-native-netinfo)
 ## Installation
