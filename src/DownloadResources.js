@@ -12,9 +12,10 @@ import {
   DeviceEventEmitter
 } from 'react-native';
 
-import ReactNativeBlobUtil from 'react-native-blob-util'
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import { zip, mp3, mp4, pdf } from './img/svgs';
+import DeviceInfo from 'react-native-device-info';
 
 const getTypeByExtension = path => {
   if (path === 'mp3' || path.indexOf('mp3') > 0) return 'audio/mp3';
@@ -56,7 +57,10 @@ const downloadRes = (
       resolve();
       if (!notOppeningAfterDld) {
         if (isiOS)
-          setTimeout(() => ReactNativeBlobUtil.ios.openDocument(filePath), 1000);
+          setTimeout(
+            () => ReactNativeBlobUtil.ios.openDocument(filePath),
+            1000
+          );
         else {
           ReactNativeBlobUtil.android.actionViewIntent(
             filePath,
@@ -95,7 +99,7 @@ const downloadRes = (
                   .mv(res.data, `${res.data}${resource.extension}`)
                   .then(() => {
                     if (!notOppeningAfterDld)
-                    ReactNativeBlobUtil.ios.openDocument(
+                      ReactNativeBlobUtil.ios.openDocument(
                         `${res.data}${resource.extension}`
                       );
                   })
@@ -120,16 +124,21 @@ const downloadRes = (
         }
       } else {
         try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-            {
-              title: 'Write to external Storage',
-              message: 'For downloading resources we need your permission',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK'
-            }
-          );
+          let granted = PermissionsAndroid.RESULTS.DENIED;
+          if (DeviceInfo.getSystemVersion() >= 13) {
+            granted = PermissionsAndroid.RESULTS.GRANTED;
+          } else {
+            granted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+              {
+                title: 'Write to external Storage',
+                message: 'For downloading resources we need your permission',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK'
+              }
+            );
+          }
           if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             ReactNativeBlobUtil.fs.df().then(info => {
               let { free, internal_free, external_free } = info;
