@@ -56,7 +56,7 @@ export default class Download_V2 extends React.PureComponent {
       props.securedPath ||
       ReactNativeBlobUtil.fs.dirs.LibraryDir ||
       ReactNativeBlobUtil.fs.dirs.DocumentDir;
-    this.id = props.entity.id;
+    this.id = props.entity?.id;
     this.brand = props.brand;
   }
 
