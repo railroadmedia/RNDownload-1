@@ -926,34 +926,34 @@ const deleteLesson = async function (id) {
   await this.deletePromise;
   let oc =
     offlineContent[id] ||
-    Object.values(offlineContent).find(offc =>
-      offc.overview.lessons.some(l => l.id === id)
+    Object.values(offlineContent)?.find(offc =>
+      offc?.overview?.lessons?.some(l => l.id === id)
     );
   let overviewContainingLesson = Object.values(offlineContent).find(oc =>
-    oc.overview?.lessons.some(l => l.id === id)
+    oc?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson)
     overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
   else {
     let filterToBeDeleted = (toBeDeleted = []) =>
-      toBeDeleted.filter(
+      toBeDeleted?.filter(
         tbd =>
-          Object.values(offlineContent).filter(
+          Object.values(offlineContent)?.filter(
             o =>
-              o.dlded.includes(tbd) || o.dlding.some(d => d.destination === tbd)
-          ).length === 1
+              o?.dlded?.includes(tbd) || o?.dlding?.some(d => d?.destination === tbd)
+          )?.length === 1
       );
     let toBeDeleted = filterToBeDeleted(
-      oc?.dlded.concat(oc?.dlding.map(d => d.destination))
+      oc?.dlded?.concat(oc?.dlding?.map(d => d?.destination))
     );
-    offlineFiles = offlineFiles.filter(
-      of => !toBeDeleted.some(tbd => tbd.includes(of))
+    offlineFiles = offlineFiles?.filter(
+      of => !toBeDeleted?.some(tbd => tbd?.includes(of))
     );
-    toBeDeleted.map(tbd => {
+    toBeDeleted?.map(tbd => {
       this.tasks?.map(t => {
-        if (t.id === tbd.split('/').pop()) {
+        if (t?.id === tbd?.split('/')?.pop()) {
           t.stop();
-          allDownloads = allDownloads.filter(ad => ad.id !== t.id);
+          allDownloads = allDownloads?.filter(ad => ad.id !== t.id);
         }
       });
       if (tbd.includes(publicPath)) {
@@ -965,7 +965,7 @@ const deleteLesson = async function (id) {
     });
   }
   if (this.tasks) this.tasks = [];
-  let taskId = offlineContent[id].fileSizes.largestFile;
+  let taskId = offlineContent?.[id]?.fileSizes?.largestFile;
   delete offlineContent?.[oc.id];
   if (taskId)
     DeviceEventEmitter.emit('dldProgress', {
