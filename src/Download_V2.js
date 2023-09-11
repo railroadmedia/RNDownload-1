@@ -311,15 +311,18 @@ export default class Download_V2 extends React.PureComponent {
           })
       );
 
-  downloadVideo = lesson =>
-    new Promise(res => {
-      let url = lesson.video_playback_endpoints[0].file;
-      let id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
-      this.downloadItem(id, url, securedPath).then(file => {
-        lesson.video_playback_endpoints[0].file = file;
-        res();
+  downloadVideo = lesson => {
+    if (lesson.video_playback_endpoints.length > 0) {
+      return new Promise(res => {
+        let url = lesson.video_playback_endpoints[0].file;
+        let id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
+        this.downloadItem(id, url, securedPath).then(file => {
+          lesson.video_playback_endpoints[0].file = file;
+          res();
+        });
       });
-    });
+    }
+  }
 
   downloadAssignment = lessons => {
     let assignments = [];
@@ -1095,11 +1098,11 @@ let derefLesson = (lesson, comments, brand) => {
   let result = {
     ...lesson,
     brand,
-    video_playback_endpoints: [
+    video_playback_endpoints: lesson.video_playback_endpoints ? [
       {
         ...hd720OrHighestVideo(lesson.video_playback_endpoints)
       }
-    ],
+    ] : [],
     resources: Object.values(lesson.resources || {})?.map(r => ({
       ...r
     }))
