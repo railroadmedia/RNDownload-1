@@ -82,8 +82,8 @@ export default class Download_V2 extends React.PureComponent {
           : {
               val,
               allDownloads,
-              largestDownloads: allDownloads.filter(ed =>
-                Object.values(offlineContent).some(
+              largestDownloads: allDownloads?.filter(ed =>
+                Object.values(offlineContent)?.some(
                   oc => oc.fileSizes.largestFile === ed.id
                 )
               )
@@ -140,9 +140,7 @@ export default class Download_V2 extends React.PureComponent {
                     .catch(restart);
                 if (e.includes('No space left on device')) {
                   deleteLesson(oc.id);
-                  let title = (oc?.overview || oc.lesson)?.fields?.find(
-                    f => f.key === 'title'
-                  )?.value;
+                  let title = (oc?.overview || oc.lesson)?.title
                   Alert.alert(
                     `Error while downloading ${title}`,
                     'There is insufficient storage space on your device. Please free up some space and try again.',
@@ -178,10 +176,6 @@ export default class Download_V2 extends React.PureComponent {
     let lesson = content?.lessons?.length ? undefined : content;
     if (
       lesson?.youtube_video_id ||
-      lesson?.fields
-        ?.find(f => f.key === 'video')
-        ?.value?.type?.toLowerCase()
-        ?.includes('youtube') ||
       content?.lessons?.find?.(l => l.youtube_video_id)  
     ) {
       this.setState({ status: 'Download' });
@@ -217,7 +211,7 @@ export default class Download_V2 extends React.PureComponent {
       offlineContent[this.id].overview = {
         ...overview,
         brand: this.brand,
-        lessons: overview.lessons.map(l => derefLesson(l, undefined, this.brand))
+        lessons: overview.lessons?.map(l => derefLesson(l, undefined, this.brand))
       };
       if (overview.data)
         overview.data = [
@@ -231,7 +225,7 @@ export default class Download_V2 extends React.PureComponent {
     let oc =
       offlineContent[this.id] ||
       Object.values(offlineContent).find(offc =>
-        offc.overview?.lessons.some(l => l.id === this.id)
+        offc.overview?.lessons?.some(l => l.id === this.id)
       );
     if (oc) {
       if (oc.dlding.length) {
@@ -240,7 +234,7 @@ export default class Download_V2 extends React.PureComponent {
           return (this.listenForLargestFile = Download_V2.addEventListener(
             p => {
               if (
-                p.largestDownloads.some(
+                p.largestDownloads?.some(
                   ld => ld.id === oc.fileSizes.largestFile
                 )
               ) {
@@ -249,8 +243,8 @@ export default class Download_V2 extends React.PureComponent {
               }
             }
           ));
-        this.tasks = allDownloads.filter(ad =>
-          oc.dlding.some(d => d.id === ad.id)
+        this.tasks = allDownloads?.filter(ad =>
+          oc.dlding?.some(d => d.id === ad.id)
         );
         this.tasks.map(task => {
           if (oc.fileSizes.largestFile === task.id)
@@ -269,8 +263,8 @@ export default class Download_V2 extends React.PureComponent {
     this.setState({ status: 'Downloading' });
     this.deletePromise = new Promise(async res => res(await this.deref()));
     if (!(await this.deletePromise)) return;
-    let lessons = offlineContent[this.id].overview?.lessons.filter(
-      l => !Object.values(offlineContent).some(oc => oc.id === l.id)
+    let lessons = offlineContent[this.id].overview?.lessons?.filter(
+      l => !Object.values(offlineContent)?.some(oc => oc.id === l.id)
     ) || [offlineContent[this.id].lesson];
     let promises = lessons.map(l => this.downloadVideo(l));
     if (offlineContent[this.id].overview)
@@ -295,8 +289,8 @@ export default class Download_V2 extends React.PureComponent {
         l =>
           l.data?.filter(d => d.key?.includes('_click_url')) ||
           Object.keys(l)
-            .filter(k => k.includes('_click_url'))
-            .map(key => ({
+            ?.filter(k => k.includes('_click_url'))
+            ?.map(key => ({
               lesson: l,
               id: `${l.id}${key}`,
               key,
@@ -338,7 +332,7 @@ export default class Download_V2 extends React.PureComponent {
         else assignments = assignments.concat(a.sheet_music_image_url || []);
       })
     );
-    assignments.map(
+    assignments?.map(
       a =>
         new Promise(res => {
           let extension = a.value.split('.').pop();
@@ -388,11 +382,11 @@ export default class Download_V2 extends React.PureComponent {
     lessons
       .reduce(
         (a, b) => ({
-          related_lessons: a.related_lessons.concat(b.related_lessons)
+          related_lessons: a.related_lessons?.concat(b.related_lessons)
         }),
         { related_lessons: [] }
       )
-      .related_lessons.map(
+      .related_lessons?.map(
         rl =>
           rl.data?.find(d => d.key === 'thumbnail_url') || {
             rl,
@@ -427,7 +421,7 @@ export default class Download_V2 extends React.PureComponent {
       .reduce((a, b) => ({ comments: a.comments.concat(b.comments) }), {
         comments: []
       })
-      .comments.map(
+      .comments?.map(
         c =>
           new Promise(res => {
             let extension = c.user?.['fields.profile_picture_image_url']
@@ -459,17 +453,17 @@ export default class Download_V2 extends React.PureComponent {
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) return [];
     }
     lessons
-      .map(l => ({
+      ?.map(l => ({
         ...l,
-        resources: l.resources.map(r => {
-          r.title = l.title || l.fields.find(f => f.key === 'title')?.value;
+        resources: l.resources?.map(r => {
+          r.title = l.title;
           return r;
         })
       }))
       .reduce((a, b) => ({ resources: a.resources.concat(b.resources) }), {
         resources: []
       })
-      .resources.map(
+      .resources?.map(
         r =>
           new Promise(res => {
             let extension = r.resource_url.split('.').pop();
@@ -495,7 +489,7 @@ export default class Download_V2 extends React.PureComponent {
       let oc = offlineContent[this.id];
       oc.dlding.push({
         id: taskId,
-        url: url.replace(/ /g, '%20'),
+        url: url?.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`
       });
       if (allDownloads.find(t => t.id === `${taskId}`)) {
@@ -504,7 +498,7 @@ export default class Download_V2 extends React.PureComponent {
       }
       let task = RNBackgroundDownloader.download({
         id: taskId,
-        url: url.replace(/ /g, '%20'),
+        url: url?.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`
       });
       let restart = () => {
@@ -512,7 +506,7 @@ export default class Download_V2 extends React.PureComponent {
         task.stop();
         task = RNBackgroundDownloader.download({
           id: taskId,
-          url: url.replace(/ /g, '%20'),
+          url: url?.replace(/ /g, '%20'),
           destination: `${path}/${taskId}`
         });
         allDownloads.map((ad, i) => {
@@ -538,7 +532,7 @@ export default class Download_V2 extends React.PureComponent {
               let title = (
                 offlineContent[this.id]?.overview ||
                 offlineContent[this.id]?.lesson
-              )?.fields?.find(f => f.key === 'title')?.value;
+              )?.title;
               deleteLesson.call(this, this.id);
               Alert.alert(
                 `Error while downloading ${title}`,
@@ -675,7 +669,7 @@ const progress = function (p, oc, task, dlding) {
 
 const done = function (oc, taskId, dlding) {
   fetchExpectedBytes(oc, dlding);
-  allDownloads = allDownloads.filter(ad => ad.id !== taskId);
+  allDownloads = allDownloads?.filter(ad => ad.id !== taskId);
   delete progresses[taskId];
   offlineFiles.push(taskId);
   dldingToDlded(oc);
@@ -762,16 +756,16 @@ const getOfflineContent = () =>
               }),
               overview: oc.overview && {
                 ...oc.overview,
-                lessons: oc.overview?.lessons.map(l => {
+                lessons: oc.overview?.lessons?.map(l => {
                   return {
                     ...l,
                     assignments: l?.assignments?.map(a => {
                       return {
                         ...a,
-                        sheet_music_image_url: a.sheet_music_image_url.map(sheet => {
+                        sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
                           return {
                             ...sheet,
-                            value: sheet.value.replace(oldUuid, newUuid),
+                            value: sheet.value?.replace(oldUuid, newUuid),
                           };
                         }),
                       };
@@ -787,14 +781,14 @@ const getOfflineContent = () =>
                         },
                       };
                     }),
-                    related_lessons: l?.related_lessons.map(rl => {
+                    related_lessons: l?.related_lessons?.map(rl => {
                       return {
                         ...rl,
                         thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
                       };
                     }),
                     thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                    video_playback_endpoints: l?.video_playback_endpoints.map(vpe => {
+                    video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => {
                       return {
                         ...vpe,
                         file: vpe.file?.replace(oldUuid, newUuid),
@@ -812,7 +806,7 @@ const getOfflineContent = () =>
                     sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
                       return {
                         ...sheet,
-                        value: sheet.value.replace(oldUuid, newUuid),
+                        value: sheet.value?.replace(oldUuid, newUuid),
                       };
                     }),
                   };
@@ -828,14 +822,14 @@ const getOfflineContent = () =>
                     },
                   };
                 }),
-                related_lessons: oc.lesson?.related_lessons.map(rl => {
+                related_lessons: oc.lesson?.related_lessons?.map(rl => {
                   return {
                     ...rl,
                     thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
                   };
                 }),
                 thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
-                video_playback_endpoints: oc.lesson?.video_playback_endpoints.map(vpe => {
+                video_playback_endpoints: oc.lesson?.video_playback_endpoints?.map(vpe => {
                   return {
                     ...vpe,
                     file: vpe.file?.replace(oldUuid, newUuid),
@@ -902,7 +896,7 @@ const handleLessonSize = (oc, taskId, bytes) => {
   let sizes = Object.keys(oc.fileSizes);
   if (sizes.includes('largestFile'))
     sizes.splice(sizes.indexOf('largestFile'), 1);
-  if (sizes.some(s => s.includes('Video')))
+  if (sizes?.some(s => s.includes('Video')))
     oc.fileSizes.largestFile = sizes.reduce((a, b) =>
       oc.fileSizes[a] > oc.fileSizes[b] ? a : b
     );
@@ -926,32 +920,32 @@ const deleteLesson = async function (id) {
   await this.deletePromise;
   let oc =
     offlineContent[id] ||
-    Object.values(offlineContent)?.find(offc =>
-      offc?.overview?.lessons?.some(l => l.id === id)
+    Object.values(offlineContent).find(offc =>
+      offc.overview.lessons?.some(l => l.id === id)
     );
   let overviewContainingLesson = Object.values(offlineContent).find(oc =>
-    oc?.overview?.lessons?.some(l => l.id === id)
+    oc.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson)
     overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
   else {
     let filterToBeDeleted = (toBeDeleted = []) =>
-      toBeDeleted?.filter(
+      toBeDeleted.filter(
         tbd =>
           Object.values(offlineContent)?.filter(
             o =>
-              o?.dlded?.includes(tbd) || o?.dlding?.some(d => d?.destination === tbd)
-          )?.length === 1
+              o.dlded.includes(tbd) || o.dlding?.some(d => d.destination === tbd)
+          ).length === 1
       );
     let toBeDeleted = filterToBeDeleted(
-      oc?.dlded?.concat(oc?.dlding?.map(d => d?.destination))
+      oc?.dlded.concat(oc?.dlding.map(d => d.destination))
     );
     offlineFiles = offlineFiles?.filter(
-      of => !toBeDeleted?.some(tbd => tbd?.includes(of))
+      of => !toBeDeleted?.some(tbd => tbd.includes(of))
     );
-    toBeDeleted?.map(tbd => {
+    toBeDeleted.map(tbd => {
       this.tasks?.map(t => {
-        if (t?.id === tbd?.split('/')?.pop()) {
+        if (t.id === tbd.split('/').pop()) {
           t.stop();
           allDownloads = allDownloads?.filter(ad => ad.id !== t.id);
         }
@@ -965,7 +959,7 @@ const deleteLesson = async function (id) {
     });
   }
   if (this.tasks) this.tasks = [];
-  let taskId = offlineContent?.[id]?.fileSizes?.largestFile;
+  let taskId = offlineContent[id].fileSizes.largestFile;
   delete offlineContent?.[oc.id];
   if (taskId)
     DeviceEventEmitter.emit('dldProgress', {
@@ -992,7 +986,7 @@ const handleOldOfflineFormat = () => {
         id: parseInt(k)
       };
       const commentsHandle = comments =>
-        comments.map(c => ({
+        comments?.map(c => ({
           ...c,
           user: {
             ...c.user,
@@ -1002,9 +996,9 @@ const handleOldOfflineFormat = () => {
           }
         }));
       const assignmentsHandle = assignments =>
-        assignments.map(a => ({
+        assignments?.map(a => ({
           ...a,
-          data: a.data.map(d => ({
+          data: a.data?.map(d => ({
             ...d,
             value:
               d.key === 'sheet_music_image_url'
@@ -1013,7 +1007,7 @@ const handleOldOfflineFormat = () => {
           }))
         }));
       const thumbHandle = data =>
-        data.map(d => ({
+        data?.map(d => ({
           ...d,
           value:
             d.key === 'thumbnail_url'
@@ -1029,19 +1023,19 @@ const handleOldOfflineFormat = () => {
       if (entity.lessons) {
         oc[k].overview = {
           ...entity,
-          data: entity.data.map(d => ({
+          data: entity.data?.map(d => ({
             ...d,
             value:
               d.key === 'thumbnail_url'
                 ? oc[k].dlded.find(dld => dld.includes(d.value))
                 : 'd.value'
           })),
-          lessons: entity.lessons.map(l => ({
+          lessons: entity.lessons?.map(l => ({
             ...l,
             comments: commentsHandle(l.comments),
             data: thumbHandle(l.data),
             assignments: assignmentsHandle(l.assignments),
-            related_lessons: l.related_lessons.map(rl => ({
+            related_lessons: l.related_lessons?.map(rl => ({
               ...rl,
               data: thumbHandle(rl.data)
             })),
@@ -1054,7 +1048,7 @@ const handleOldOfflineFormat = () => {
           comments: commentsHandle(oc[k].comments),
           data: thumbHandle(entity.data),
           assignments: assignmentsHandle(entity.assignments),
-          related_lessons: entity.related_lessons.map(rl => ({
+          related_lessons: entity.related_lessons?.map(rl => ({
             ...rl,
             data: thumbHandle(rl.data)
           })),
@@ -1066,58 +1060,32 @@ const handleOldOfflineFormat = () => {
     }
 
     let handleLesson = lesson => {
-      lesson.style =
-        lesson.style || lesson.fields?.find(f => f.key === 'style')?.value;
-      lesson.difficulty =
-        lesson.difficulty ||
-        lesson.fields?.find(f => f.key === 'difficulty')?.value;
-      lesson.title =
-        lesson.title || lesson.fields?.find(f => f.key === 'title')?.value;
-      lesson.description =
-        lesson.description ||
-        lesson.data?.find(d => d.key === 'description')?.value;
+      lesson.style = lesson.style;
+      lesson.difficulty = lesson.difficulty;
+      lesson.title = lesson.title;
+      lesson.description = lesson.description;
       lesson.data?.map(d => d.key && (lesson[d.key] = d.value));
-      lesson.vimeo_video_id =
-        lesson.vimeo_video_id ||
-        lesson.fields
-          ?.find(f => f.key === 'video')
-          ?.value?.fields?.find(f => f.key === 'vimeo_video_id')?.value;
+      lesson.vimeo_video_id = lesson.vimeo_video_id;
       lesson.assignments?.map(a => {
-        a.title = a.title || a.fields?.find(f => f.key === 'title')?.value;
-        a.description =
-          a.description || a.data?.find(d => d.key === 'description')?.value;
-        a.sheet_music_image_url =
-          a.sheet_music_image_url ||
-          a.data?.filter(d => d.key === 'sheet_music_image_url');
+        a.title = a.title;
+        a.description = a.description;
+        a.sheet_music_image_url = a.sheet_music_image_url
       });
       if (lesson.instructors)
-        lesson.instructor = lesson.instructors.map(i => ({
+        lesson.instructor = lesson.instructors?.map(i => ({
           id: i.id,
-          name: i.name || i.fields?.find(f => f.key === 'name')?.value,
-          biography:
-            i.biography || i.data?.find(d => d.key === 'biography')?.value,
-          head_shot_picture_url:
-            i.biography ||
-            i.data?.find(d => d.key === 'head_shot_picture_url')?.value
+          name: i.name,
+          biography: i.biography,
+          head_shot_picture_url: i.head_shot_picture_url
         }));
     };
     if (oc[k].lesson) handleLesson(oc[k].lesson);
     if (oc[k].overview) {
-      oc[k].overview.description =
-        oc[k].overview.description ||
-        oc[k].overview.data?.find(d => d.key === 'description')?.value;
-      oc[k].overview.thumbnail_url =
-        oc[k].overview.thumbnail_url ||
-        oc[k].overview.data?.find(d => d.key === 'thumbnail_url')?.value;
-      oc[k].overview.title =
-        oc[k].overview.title ||
-        oc[k].overview.fields?.find(f => f.key === 'title')?.value;
-      oc[k].overview.style =
-        oc[k].overview.style ||
-        oc[k].overview.fields?.find(f => f.key === 'style')?.value;
-      oc[k].overview.difficulty =
-        oc[k].overview.difficulty ||
-        oc[k].overview.fields?.find(f => f.key === 'difficulty')?.value;
+      oc[k].overview.description = oc[k].overview.description;
+      oc[k].overview.thumbnail_url = oc[k].overview.thumbnail_url;
+      oc[k].overview.title = oc[k].overview.title;
+      oc[k].overview.style = oc[k].overview.style;
+      oc[k].overview.difficulty = oc[k].overview.difficulty;
       oc[k].overview.lessons.map(l => handleLesson(l));
     }
   });
@@ -1159,10 +1127,10 @@ let derefLesson = (lesson, comments, brand) => {
 
 let hd720OrHighestVideo = videos => {
   return videos
-    .filter(v => v.height <= 720)
-    .filter(v => v.height <= -~width * pixR)
-    .sort((a, b) => (a.height < b.height ? -1 : 1))
-    .pop();
+    ?.filter(v => v.height <= 720)
+    ?.filter(v => v.height <= -~width * pixR)
+    ?.sort((a, b) => (a.height < b.height ? -1 : 1))
+    ?.pop();
 };
 
 export { offlineContent };
