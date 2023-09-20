@@ -554,7 +554,7 @@ export default class Download_V2 extends React.PureComponent {
 
   render() {
     const { status } = this.state;
-    const { styles: propStyle } = this.props;
+    const { styles: propStyle, disabled } = this.props;
     const iconStyle = {
       width: propStyle?.iconSize?.width || 25,
       height: propStyle?.iconSize?.height || 25,
@@ -565,8 +565,9 @@ export default class Download_V2 extends React.PureComponent {
         <TouchableOpacity
           style={[
             propStyle?.touchable,
-            { alignItems: 'center', justifyContent: 'space-around' }
+            { alignItems: 'center', justifyContent: 'space-around', opacity: disabled ? 0.5 : 1 }
           ]}
+          disabled={disabled}
           onPress={
             status === 'Download'
               ? this.download

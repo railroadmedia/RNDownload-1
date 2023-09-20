@@ -33,6 +33,7 @@ declare module 'RNDownload' {
           comments?: Comment[];
         }
       | {};
+    disabled: boolean;
     getDownloadContent?: any;
     styles: {
       touchable: StyleProp<ViewStyle>;
