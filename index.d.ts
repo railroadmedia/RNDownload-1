@@ -37,6 +37,7 @@ declare module 'RNDownload' {
     getDownloadContent?: any;
     styles: {
       touchable: StyleProp<ViewStyle>;
+      iconSize?: { width: number; height: number };
       iconDownloadColor: string;
       activityIndicatorColor: string;
       animatedProgressBackground: string;
