@@ -720,7 +720,10 @@ const manageOfflinePath = oc => {
         });
       else
         of.filter(o => o.includes(`${a.id}`)).map(
-          (ofa, i) => (a?.sheet_music_image_url?.[i] = `${sp}/${ofa}`)
+          (ofa, i) => { 
+            if (a?.sheet_music_image_url?.[i]) 
+              return a.sheet_music_image_url[i] = `${sp}/${ofa}`
+          }
         );
     });
     lesson.comments?.map(c => {
