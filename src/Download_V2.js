@@ -213,10 +213,6 @@ export default class Download_V2 extends React.PureComponent {
         brand: this.brand,
         lessons: overview.lessons?.map(l => derefLesson(l, undefined, this.brand))
       };
-      if (overview.data)
-        overview.data = [
-          { ...overview.data.find(d => d.key === 'thumbnail_url') }
-        ];
     }
     return true;
   };
@@ -287,7 +283,6 @@ export default class Download_V2 extends React.PureComponent {
     lessons
       .map(
         l =>
-          l.data?.filter(d => d.key?.includes('_click_url')) ||
           Object.keys(l)
             ?.filter(k => k.includes('_click_url'))
             ?.map(key => ({
@@ -328,11 +323,7 @@ export default class Download_V2 extends React.PureComponent {
     let assignments = [];
     lessons.map(l =>
       l.assignments?.map(a => {
-        if (a.data)
-          a.data?.map(d => {
-            if (d.key === 'sheet_music_image_url') assignments.push(d);
-          });
-        else assignments = assignments.concat(a.sheet_music_image_url || []);
+        assignments = assignments.concat(a.sheet_music_image_url || []);
       })
     );
     assignments?.map(
@@ -361,7 +352,7 @@ export default class Download_V2 extends React.PureComponent {
 
   downloadThumb = lesson =>
     new Promise(async res => {
-      let thumb = lesson.data?.[0] || {
+      let thumb = {
         id: `${lesson.id}thumb`,
         value: lesson.thumbnail_url
       };
@@ -382,22 +373,7 @@ export default class Download_V2 extends React.PureComponent {
     });
 
   downloadRelatedThumb = lessons =>
-    lessons
-      .reduce(
-        (a, b) => ({
-          related_lessons: a.related_lessons?.concat(b.related_lessons)
-        }),
-        { related_lessons: [] }
-      )
-      .related_lessons?.map(
-        rl =>
-          rl.data?.find(d => d.key === 'thumbnail_url') || {
-            rl,
-            id: `${rl.id}thumb`,
-            value: rl.thumbnail_url
-          }
-      )
-      .map(
+    lessons?.related_lessons?.map(
         thumb =>
           new Promise(async res => {
             if (!thumb) return res();
@@ -420,11 +396,7 @@ export default class Download_V2 extends React.PureComponent {
       );
 
   downloadCommentUserProfile = lessons =>
-    lessons
-      .reduce((a, b) => ({ comments: a.comments.concat(b.comments) }), {
-        comments: []
-      })
-      .comments?.map(
+    lessons?.comments?.map(
         c =>
           new Promise(res => {
             let extension = c.user?.['fields.profile_picture_image_url']
@@ -702,23 +674,11 @@ const manageOfflinePath = oc => {
       lesson.thumbnail_url = `${sp}/${of.find(o =>
         o.includes(`${lesson.id}thumb`)
       )}`;
-    else if (of.find(o => o.includes(lesson.data?.[0].id)))
-      lesson.data[0].value = `${sp}/${of.find(o =>
-        o.includes(lesson.data[0].id)
-      )}`;
     lesson.related_lessons?.map(rl => {
       if (of.find(o => o.includes(`${rl.id}thumb`)))
         rl.thumbnail_url = `${sp}/${of.find(o => o.includes(`${rl.id}thumb`))}`;
-      else if (of.find(o => o.includes(rl.data?.[0].id)))
-        rl.data[0].value = `${sp}/${of.find(o => o.includes(rl.data[0].id))}`;
     });
     lesson.assignments?.map(a => {
-      if (a.data)
-        a.data.map(d => {
-          if (of.find(o => o.includes(d.id)))
-            d.value = `${sp}/${of.find(o => o.includes(d.id))}`;
-        });
-      else
         of.filter(o => o.includes(`${a.id}`)).map(
           (ofa, i) => { 
             if (a?.sheet_music_image_url?.[i]) 
@@ -1002,25 +962,6 @@ const handleOldOfflineFormat = () => {
             )
           }
         }));
-      const assignmentsHandle = assignments =>
-        assignments?.map(a => ({
-          ...a,
-          data: a.data?.map(d => ({
-            ...d,
-            value:
-              d.key === 'sheet_music_image_url'
-                ? oc[k].dlded.find(dld => dld.includes(d.value))
-                : d.value
-          }))
-        }));
-      const thumbHandle = data =>
-        data?.map(d => ({
-          ...d,
-          value:
-            d.key === 'thumbnail_url'
-              ? oc[k].dlded.find(dld => dld.includes(d.value))
-              : 'd.value'
-        }));
       const videoHandle = video => [
         {
           ...video,
@@ -1030,22 +971,11 @@ const handleOldOfflineFormat = () => {
       if (entity.lessons) {
         oc[k].overview = {
           ...entity,
-          data: entity.data?.map(d => ({
-            ...d,
-            value:
-              d.key === 'thumbnail_url'
-                ? oc[k].dlded.find(dld => dld.includes(d.value))
-                : 'd.value'
-          })),
           lessons: entity.lessons?.map(l => ({
             ...l,
             comments: commentsHandle(l.comments),
-            data: thumbHandle(l.data),
-            assignments: assignmentsHandle(l.assignments),
-            related_lessons: l.related_lessons?.map(rl => ({
-              ...rl,
-              data: thumbHandle(rl.data)
-            })),
+            assignments: l.assignments,
+            related_lessons: l.related_lessons,
             video_playback_endpoints: videoHandle(l.video_playback_endpoints[0])
           }))
         };
@@ -1053,12 +983,8 @@ const handleOldOfflineFormat = () => {
         oc[k].lesson = {
           ...entity,
           comments: commentsHandle(oc[k].comments),
-          data: thumbHandle(entity.data),
-          assignments: assignmentsHandle(entity.assignments),
-          related_lessons: entity.related_lessons?.map(rl => ({
-            ...rl,
-            data: thumbHandle(rl.data)
-          })),
+          assignments: entity.assignments,
+          related_lessons: entity.related_lessons,
           video_playback_endpoints: videoHandle(
             entity.video_playback_endpoints[0]
           )
@@ -1071,7 +997,6 @@ const handleOldOfflineFormat = () => {
       lesson.difficulty = lesson.difficulty;
       lesson.title = lesson.title;
       lesson.description = lesson.description;
-      lesson.data?.map(d => d.key && (lesson[d.key] = d.value));
       lesson.vimeo_video_id = lesson.vimeo_video_id;
       lesson.assignments?.map(a => {
         a.title = a.title;
@@ -1113,21 +1038,6 @@ let derefLesson = (lesson, comments, brand) => {
   };
   if (lesson.assignments)
     result.assignments = JSON.parse(JSON.stringify(lesson.assignments));
-  if (lesson.data)
-    result.data = [
-      { ...lesson.data?.find(d => d.key === 'thumbnail_url') },
-      { ...lesson.data?.find(d => d.key === 'description') }
-    ].concat(
-      lesson.data
-        ?.filter(d => d.key.includes('_click_url'))
-        .map(d => ({ ...d }))
-    );
-  result.related_lessons = lesson.related_lessons?.map(rl => {
-    let rLess = { ...rl };
-    if (rl.data)
-      rLess.data = [{ ...rl.data?.find(d => d.key === 'thumbnail_url') }];
-    return rLess;
-  });
   result.comments = JSON.parse(JSON.stringify(comments || lesson.comments));
   return result;
 };
