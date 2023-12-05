@@ -1,5 +1,3 @@
-/* props: maxFontMultiplier */
-
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   View,
@@ -23,8 +21,6 @@ interface IAnimatedCustomAlert {
 const AnimatedCustomAlert = forwardRef<{ toggle: () => void }, IAnimatedCustomAlert>(
   (props, ref) => {
     const { onClose, onDelete, styles: propStyle } = props;
-    console.log('prros-> ', propStyle);
-
     const [visible, setVisible] = useState(false);
     const title = useRef<string | undefined>('');
     const message = useRef<string | undefined>('');
@@ -34,7 +30,7 @@ const AnimatedCustomAlert = forwardRef<{ toggle: () => void }, IAnimatedCustomAl
       toggle,
     }));
 
-    const toggle = (titleText?: string, messageText?: string) => {
+    const toggle = (titleText?: string, messageText?: string): void => {
       title.current = titleText;
       message.current = messageText;
       if (visible) {
@@ -43,7 +39,7 @@ const AnimatedCustomAlert = forwardRef<{ toggle: () => void }, IAnimatedCustomAl
       setVisible(!visible);
     };
 
-    const animate = () => {
+    const animate = (): void => {
       Animated.timing(opacity.current, {
         duration: 250,
         useNativeDriver: true,

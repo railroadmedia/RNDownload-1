@@ -1,6 +1,7 @@
 import { Dimensions, PixelRatio, Platform } from 'react-native';
 
-let { width, height } = Dimensions.get('screen');
+const height = Dimensions.get('screen').height;
+let width = Dimensions.get('screen').width;
 width = width < height ? width : height;
 
 export const pixR = PixelRatio.get();
