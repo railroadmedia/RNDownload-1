@@ -21,6 +21,7 @@ import RNBackgroundDownloader from 'react-native-background-downloader';
 import AnimatedCustomAlert from './AnimatedCustomAlert';
 
 import { download, trash, stopDownload } from './img/svgs';
+import { FONT_MULTIPLIER, isiOS, pixR } from './helper';
 
 let progresses = {};
 let allDownloads = [];
@@ -29,12 +30,6 @@ let offlineContent = {};
 let securedPath, publicPath;
 let publicOfflineFiles = [];
 let securedOfflineFiles = [];
-let { width, height } = Dimensions.get('screen');
-width = width < height ? width : height;
-
-const pixR = PixelRatio.get();
-const isiOS = Platform.OS === 'ios';
-export const FONT_MULTIPLIER = width < 375 ? 1 : width < 1024 ? 1.35 : 1.8;
 
 export default class Download_V2 extends React.PureComponent {
   id = '';
@@ -607,25 +602,7 @@ export default class Download_V2 extends React.PureComponent {
             this.alert.toggle();
           }}
           ref={r => (this.alert = r)}
-          styles={{
-            background: propStyle?.alert?.alertBackground,
-            textTitleColor: propStyle?.alert?.alertTextTitleColor,
-            textMessageColor: propStyle?.alert?.alertTextMessageColor,
-            textTitleFontFamily: propStyle?.alert?.alertTextTitleFontFamily,
-            textMessageFontFamily: propStyle?.alert?.alertTextMessageFontFamily,
-            touchableTextDeleteColor:
-              propStyle?.alert?.alertTouchableTextDeleteColor,
-            touchableTextCancelColor:
-              propStyle?.alert?.alertTouchableTextCancelColor,
-            touchableDeleteBackground:
-              propStyle?.alert?.alertTouchableDeleteBackground,
-            touchableTextDeleteFontFamily:
-              propStyle?.alert?.alertTouchableTextDeleteFontFamily,
-            touchableTextCancelFontFamily:
-              propStyle?.alert?.alertTouchableTextCancelFontFamily,
-            touchableDeleteBorderColor:
-              propStyle?.alert?.alertTouchableDeleteBorderColor || 'transparent'
-          }}
+          styles={propStyle.alert}
         />
       </>
     );
