@@ -7,7 +7,7 @@ export interface ISvg {
   height?: number | string;
 }
 
-export const download = ({ width, height, fill }: ISvg): ReactElement => (
+export const downloadSvg = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg width={width} height={height} viewBox='0 0 16 16' fill='none'>
     <Path
       d='M3.14966 10.5005L3.14966 11.1255C3.14966 12.161 3.98912 13.0005 5.02466 13.0005L11.2747 13.0005C12.3102 13.0005 13.1497 12.161 13.1497 11.1255L13.1497 10.5005M10.6497 8.00049L8.14966 10.5005M8.14966 10.5005L5.64966 8.00049M8.14966 10.5005L8.14966 3.00049'
