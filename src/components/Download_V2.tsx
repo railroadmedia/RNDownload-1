@@ -5,7 +5,7 @@ import {
   Alert,
   Animated,
   TouchableOpacity,
-  ActivityIndicator,
+  ActivityIndicator, // eslint-disable-next-line react-native/split-platform-components
   PermissionsAndroid,
   DeviceEventEmitter,
   StyleProp,
@@ -30,28 +30,29 @@ import type {
 } from '../entity';
 
 interface IDownloads {
-  begin(arg0: (expectedBytes: number) => void): unknown;
-  progress(arg0: (p: number) => void): unknown;
-  done(arg0: () => void): unknown;
-  stop(): unknown;
   bytesWritten: number;
   id: string;
   percent: number;
   state: string;
   totalBytes: number;
+  begin(arg0: (expectedBytes: number) => void): unknown;
+  progress(arg0: (p: number) => void): unknown;
+  done(arg0: () => void): unknown;
+  stop(): unknown;
 }
 
 let progresses: Record<string, number> = {};
 let allDownloads: any[] = [];
 let offlineFiles: string[] = [];
 let offlineContent: Record<string, IOfflineContent> = {};
-let securedPath: string, publicPath: string;
+let securedPath: string;
+let publicPath: string;
 let publicOfflineFiles: string[] = [];
 let securedOfflineFiles: string[] = [];
 let listenForLargestFile: { remove: () => void };
 let deletePromise: Promise<unknown>;
 
-interface IDownload_V2 {
+interface IDownloadV2 {
   brand: Brand;
   entity: {
     id: number;
@@ -84,7 +85,7 @@ interface IDownload_V2 {
   publicPath?: string;
 }
 
-const Download_V2: FunctionComponent<IDownload_V2> = props => {
+const DownloadV2: FunctionComponent<IDownloadV2> = props => {
   const {
     brand,
     entity,
@@ -119,32 +120,33 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       listenForLargestFile?.remove?.();
       appEventListener?.remove?.();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateValue = (p: number) =>
+  const updateValue = (p: number): void =>
     progressTranslateX.current?.setValue?.(-progressWidth.current * (1 - p));
 
-  const onDone = () => {
+  const onDone = (): void => {
     onDoneProps?.();
     setStatus('Downloaded');
   };
 
-  const handleAppState = (state: string) => {
+  const handleAppState = (state: string): void => {
     if (state === 'active') {
       if (tasks.current?.length && !tasks.current?.some(t => t?.state !== 'DONE')) {
         setStatus('Downloaded');
       }
-      let oc = offlineContent[entity?.id];
-      let largestDld = tasks.current?.find(t => t.id === oc?.fileSizes?.largestFile);
+      const oc = offlineContent[entity?.id];
+      const largestDld = tasks.current?.find(t => t.id === oc?.fileSizes?.largestFile);
       largestDld?.progress((p: number) =>
         progress(p, oc, largestDld as IDownloads, undefined, updateValue)
       );
     }
   };
 
-  const deref = async () => {
-    let content = await getDownloadContent?.();
-    let lesson = content?.lessons?.length ? undefined : content;
+  const deref = async (): Promise<true | void> => {
+    const content = await getDownloadContent?.();
+    const lesson = content?.lessons?.length ? undefined : content;
     if (lesson?.youtube_video_id || content?.lessons?.find?.(l => l.youtube_video_id)) {
       setStatus('Download');
       return Alert.alert(
@@ -156,8 +158,8 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
         { cancelable: false }
       );
     }
-    let overview = content?.lessons?.length ? content : undefined;
-    let { comments } = entity;
+    const overview = content?.lessons?.length ? content : undefined;
+    const { comments } = entity;
     if (!lesson && !overview) {
       setStatus('Download');
       return Alert.alert(
@@ -190,8 +192,12 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     return true;
   };
 
-  const resumeThis = () => {
-    let oc =
+  const resumeThis = ():
+    | {
+        remove: () => void;
+      }
+    | undefined => {
+    const oc =
       offlineContent[entity?.id] ||
       Object.values(offlineContent).find(
         offc => offc?.overview?.lessons?.some(l => l.id === entity?.id)
@@ -227,18 +233,18 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     }
   };
 
-  const download = async () => {
+  const download = async (): Promise<void> => {
     setStatus('Downloading');
     deletePromise = new Promise(async res => res(await deref()));
     if (!(await deletePromise)) {
       return;
     }
     const overview = offlineContent[entity?.id].overview;
-    let lessons = overview?.lessons?.filter(
+    const lessons = overview?.lessons?.filter(
       l => !Object.values(offlineContent)?.some(oc => oc.id === l.id)
     ) || [offlineContent[entity?.id]?.lesson as ILesson];
 
-    let promises = lessons?.map(l => downloadVideo(l as ILesson));
+    const promises = lessons?.map(l => downloadVideo(l as ILesson));
 
     if (overview) {
       promises.push(downloadThumb(overview));
@@ -258,7 +264,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     setOfflineContent();
   };
 
-  const downloadMp3s = (lessons: ILesson[]) =>
+  const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
       .map(
         l =>
@@ -275,8 +281,8 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       .map(
         ({ id: mp3Id, lesson, key, value }) =>
           new Promise<void>(res => {
-            let url = value;
-            let id = `${mp3Id}.mp3`;
+            const url = value;
+            const id = `${mp3Id}.mp3`;
             downloadItem(id, url as string, securedPath).then(v => {
               value = v;
               if (lesson) {
@@ -287,11 +293,11 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
           })
       );
 
-  const downloadVideo = (lesson: ILesson) => {
+  const downloadVideo = (lesson: ILesson): Promise<void> | undefined => {
     if (lesson?.video_playback_endpoints?.length > 0) {
       return new Promise<void>(res => {
-        let url = lesson.video_playback_endpoints[0].file;
-        let id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
+        const url = lesson.video_playback_endpoints[0].file;
+        const id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
         downloadItem(id, url, securedPath).then(file => {
           lesson.video_playback_endpoints[0].file = file;
           res();
@@ -300,7 +306,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     }
   };
 
-  const downloadAssignment = async (lessons: ILesson[]) => {
+  const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
     lessons?.map(
       l =>
@@ -309,15 +315,15 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     assignments?.map(
       a =>
         new Promise<void>(res => {
-          let extension = a.value.split('.').pop();
-          let url = a.value;
-          let id = `${a.id}.${extension}`;
+          const extension = a.value.split('.').pop();
+          const url = a.value;
+          const id = `${a.id}.${extension}`;
           downloadItem(id, url, securedPath).then(value => {
             a.value = value;
             ReactNativeBlobUtil.fs
               .readFile(a.value, 'utf8')
               .then(result => {
-                let vb = result?.split('viewBox="')?.[1]?.split('"')?.[0].split(' ');
+                const vb = result?.split('viewBox="')?.[1]?.split('"')?.[0].split(' ');
                 if (vb[2] && vb[3]) {
                   a.whRatio = vb[2] / vb[3];
                 }
@@ -329,9 +335,9 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
     );
   };
 
-  const downloadThumb = (lesson: ILesson | IOverview) =>
+  const downloadThumb = (lesson: ILesson | IOverview): Promise<void> =>
     new Promise<void>(async res => {
-      let thumb = {
+      const thumb = {
         id: `${lesson.id}thumb`,
         value: lesson?.thumbnail_url,
       };
@@ -343,11 +349,11 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       }
       let extension = thumb.value?.split('.').pop() || '';
       if (!['jpeg', 'jpg', 'png'].includes(extension)) {
-        const res: any = await fetch(thumb.value);
-        extension = res?.headers?.map?.['content-type']?.split('/')?.pop();
+        const thumbRes: any = await fetch(thumb.value);
+        extension = thumbRes?.headers?.map?.['content-type']?.split('/')?.pop();
       }
-      let url = thumb.value;
-      let id = `${thumb.id}.${extension}`;
+      const url = thumb.value;
+      const id = `${thumb.id}.${extension}`;
       downloadItem(id, url, securedPath).then(value => {
         thumb.value = value;
         lesson.thumbnail_url = value;
@@ -355,7 +361,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       });
     });
 
-  const downloadRelatedThumb = (lessons: ILesson[]) =>
+  const downloadRelatedThumb = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
       ?.reduce(
         (a, b) => ({
@@ -365,7 +371,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       )
       ?.related_lessons?.map(rLesson => downloadThumb(rLesson));
 
-  const downloadCommentUserProfile = (lessons: ILesson[]) =>
+  const downloadCommentUserProfile = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
       ?.reduce((a, b) => ({ comments: a?.comments?.concat(b?.comments) }), {
         comments: [] as IComment[],
@@ -373,9 +379,9 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       .comments?.map(
         c =>
           new Promise<void>(res => {
-            let extension = c.user?.['fields.profile_picture_image_url']?.split('.')?.pop();
-            let url = c.user?.['fields.profile_picture_image_url'];
-            let id = `${c.user_id}.${extension}`;
+            const extension = c.user?.['fields.profile_picture_image_url']?.split('.')?.pop();
+            const url = c.user?.['fields.profile_picture_image_url'];
+            const id = `${c.user_id}.${extension}`;
             if (id && url) {
               downloadItem(id, url, securedPath).then(value => {
                 c.user['fields.profile_picture_image_url'] = value;
@@ -387,9 +393,9 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
           })
       );
 
-  const downloadResource = async (lessons: ILesson[]) => {
+  const downloadResource = async (lessons: ILesson[]): Promise<void> => {
     if (!IS_IOS) {
-      let granted = await PermissionsAndroid.request(
+      const granted = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         {
           title: 'Write to external Storage',
@@ -417,9 +423,9 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       .resources?.map(
         r =>
           new Promise<void>(res => {
-            let extension = r.resource_url.split('.').pop();
-            let url = r.resource_url;
-            let id = `${r.resource_id}.${extension}`;
+            const extension = r.resource_url.split('.').pop();
+            const url = r.resource_url;
+            const id = `${r.resource_id}.${extension}`;
             downloadItem(
               id,
               url,
@@ -432,9 +438,9 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       );
   };
 
-  const downloadItem = (taskId: string, url: string, path: string) =>
+  const downloadItem = (taskId: string, url: string, path: string): Promise<string> =>
     new Promise<string>(res => {
-      let oc = offlineContent[entity?.id];
+      const oc = offlineContent[entity?.id];
       oc.dlding.push({
         id: taskId,
         url: url?.replace(/ /g, '%20'),
@@ -449,7 +455,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
         url: url?.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`,
       });
-      let restart = () => {
+      const restart = (): void => {
         delete progresses[taskId];
         task.stop();
         task = RNBackgroundDownloader.download({
@@ -458,11 +464,13 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
           destination: `${path}/${taskId}`,
         });
         allDownloads.map((ad, i) => {
-          if (ad.id === taskId) allDownloads[i] = task;
+          if (ad.id === taskId) {
+            allDownloads[i] = task;
+          }
         });
         resume();
       };
-      let resume = () => {
+      const resume = (): void => {
         task
           .begin((expectedBytes: number) => handleLessonSize(oc, taskId, expectedBytes))
           .progress((p: number) => progress(p, oc, task, undefined, updateValue))
@@ -471,10 +479,11 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
             res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
           })
           .error((e: string | string[]) => {
-            if (e.includes('No such file or directory'))
+            if (e.includes('No such file or directory')) {
               ReactNativeBlobUtil.fs.unlink(`${path}/${taskId}`).then(restart).catch(restart);
+            }
             if (e.includes('No space left on device')) {
-              let title = (
+              const title = (
                 offlineContent[entity?.id]?.overview || offlineContent[entity?.id]?.lesson
               )?.title;
               deleteLesson(entity?.id, tasks, setStatus);
@@ -495,7 +504,7 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
       resume();
     });
 
-  const onDelete = () => {
+  const onDelete = (): void => {
     deleteLesson(entity?.id, tasks, setStatus);
     alert.current?.toggle();
   };
@@ -573,11 +582,14 @@ const Download_V2: FunctionComponent<IDownload_V2> = props => {
   );
 };
 
-const addDownloadEventListener = (callback: {
-  (p: any): void;
-  (arg0: { val: unknown[]; allDownloads: IDownloads[]; largestDownloads: IDownloads[] }): void;
-}) => {
-  let progressListener = (p: { id: string | number; val: number }) => {
+const addDownloadEventListener = (
+  callback: (
+    arg0: { val: any[]; allDownloads: IDownloads[]; largestDownloads: IDownloads[] } | any
+  ) => void
+): {
+  remove: () => void;
+} => {
+  const progressListener = (p: { id: string | number; val: number }): void => {
     progresses[p.id] = p.val;
     let val: number | number[] = Object.values(progresses);
     val = val?.reduce((t, i) => t + i) / val.length;
@@ -605,7 +617,7 @@ const addDownloadEventListener = (callback: {
 const resumeAll = async (
   securedP = ReactNativeBlobUtil.fs.dirs.LibraryDir || ReactNativeBlobUtil.fs.dirs.DocumentDir,
   publicP = ReactNativeBlobUtil.fs.dirs.DocumentDir
-) => {
+): Promise<void> => {
   publicPath = publicP;
   securedPath = securedP;
   publicOfflineFiles = (await getPublicOfflineFiles()) || [];
@@ -626,17 +638,19 @@ const resumeAll = async (
       .map(d => ({ ...d }))
       .map(dlding => {
         let task = allDownloads?.find(ad => ad.id === dlding.id);
-        let restart = () => {
+        const restart = (): void => {
           delete progresses[task?.id as string];
           task?.stop();
           delete dlding?.headers;
           task = RNBackgroundDownloader.download(dlding);
           allDownloads.map((ad, i) => {
-            if (ad.id === task?.id) allDownloads[i] = task;
+            if (ad.id === task?.id) {
+              allDownloads[i] = task;
+            }
           });
           resume();
         };
-        let resume = () => {
+        const resume = (): void => {
           task
             ?.begin((expectedBytes: number) =>
               handleLessonSize(oc, task?.id as string, expectedBytes)
@@ -644,11 +658,12 @@ const resumeAll = async (
             ?.progress((p: number) => progress(p, oc, task as IDownloads, dlding))
             ?.done(() => done(oc, task?.id as string, dlding))
             ?.error((e: string | string[]) => {
-              if (e.includes('No such file or directory'))
+              if (e.includes('No such file or directory')) {
                 ReactNativeBlobUtil.fs.unlink(dlding.destination).then(restart).catch(restart);
+              }
               if (e.includes('No space left on device')) {
                 deleteLesson(oc.id);
-                let title = (oc?.overview || oc.lesson)?.title;
+                const title = (oc?.overview || oc.lesson)?.title;
                 Alert.alert(
                   `Error while downloading ${title}`,
                   'There is insufficient storage space on your device. Please free up some space and try again.',
@@ -658,9 +673,11 @@ const resumeAll = async (
               }
             });
         };
-        if (task && task.state === 'DONE' && !offlineFiles.includes(task.id))
+        if (task && task.state === 'DONE' && !offlineFiles.includes(task.id)) {
           ReactNativeBlobUtil.fs.unlink(dlding.destination).then(restart).catch(restart);
-        else resume();
+        } else {
+          resume();
+        }
       });
   });
 };
@@ -671,7 +688,7 @@ const progress = (
   task: IDownloads,
   dlding?: IDownloading,
   updateValue?: (p: number) => void
-) => {
+): void => {
   fetchExpectedBytes(oc, dlding);
   if (oc?.fileSizes?.largestFile === task?.id && task?.state !== 'STOPPED') {
     DeviceEventEmitter.emit('dldProgress', {
@@ -682,7 +699,12 @@ const progress = (
   }
 };
 
-const done = (oc: IOfflineContent, taskId: string, dlding?: IDownloading, onDone?: () => void) => {
+const done = (
+  oc: IOfflineContent,
+  taskId: string,
+  dlding?: IDownloading,
+  onDone?: () => void
+): void => {
   fetchExpectedBytes(oc, dlding);
   allDownloads = allDownloads?.filter(ad => ad.id !== taskId);
 
@@ -702,19 +724,22 @@ const done = (oc: IOfflineContent, taskId: string, dlding?: IDownloading, onDone
   }
 };
 
-const manageOfflinePath = (oc: IOfflineContent) => {
-  let of = offlineFiles;
-  let sp = `${IS_IOS ? '' : 'file://'}${securedPath}`;
-  const manage = (lesson: ILesson) => {
-    if (of.find(o => o.includes(`${lesson.id}Video`)))
+const manageOfflinePath = (oc: IOfflineContent): void => {
+  const of = offlineFiles;
+  const sp = `${IS_IOS ? '' : 'file://'}${securedPath}`;
+  const manage = (lesson: ILesson): void => {
+    if (of.find(o => o.includes(`${lesson.id}Video`))) {
       lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
         o.includes(`${lesson.id}Video`)
       )}`;
-    if (of.find(o => o.includes(`${lesson.id}thumb`)))
+    }
+    if (of.find(o => o.includes(`${lesson.id}thumb`))) {
       lesson.thumbnail_url = `${sp}/${of.find(o => o.includes(`${lesson.id}thumb`))}`;
+    }
     lesson?.related_lessons?.map(rl => {
-      if (of.find(o => o.includes(`${rl.id}thumb`)))
+      if (of.find(o => o.includes(`${rl.id}thumb`))) {
         rl.thumbnail_url = `${sp}/${of.find(o => o.includes(`${rl.id}thumb`))}`;
+      }
     });
 
     lesson?.assignments?.map((a: any): any => {
@@ -726,20 +751,25 @@ const manageOfflinePath = (oc: IOfflineContent) => {
     });
 
     lesson.comments?.map(c => {
-      if (of.find(o => o.includes(String(c.user_id))))
+      if (of.find(o => o.includes(String(c.user_id)))) {
         c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
           o.includes(String(c.user_id))
         )}`;
+      }
     });
   };
-  if (oc.lesson) manage(oc.lesson);
-  if (oc.overview) oc.overview.lessons.map(l => manage(l));
+  if (oc.lesson) {
+    manage(oc.lesson);
+  }
+  if (oc.overview) {
+    oc.overview.lessons.map(l => manage(l));
+  }
 };
 
-const getOfflineContent = () =>
-  new Promise(async (res: (value: Record<string, IOfflineContent>) => void) => {
+const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
+  new Promise(async res => {
     try {
-      let ofc: Record<string, IOfflineContent> = JSON.parse(
+      const ofc: Record<string, IOfflineContent> = JSON.parse(
         await ReactNativeBlobUtil.fs.readFile(`${securedPath}/offlineContent`, 'utf8')
       );
 
@@ -755,73 +785,26 @@ const getOfflineContent = () =>
       Promise.all(
         Object.values(ofc)?.map(oc => {
           oldUuid = oc.dlded[0]?.substring(oc.dlded[0].indexOf('Application/') + 12, 36);
-          if (oldUuid === newUuid) return { [oc.id]: oc };
+          if (oldUuid === newUuid) {
+            return { [oc.id]: oc };
+          }
 
           return {
             [oc.id]: {
               ...oc,
-              dlded: oc.dlded?.map(d => {
-                return oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d;
-              }),
+              dlded: oc.dlded?.map(d => (oldUuid !== newUuid ? d?.replace(oldUuid, newUuid) : d)),
               overview: oc.overview && {
                 ...oc.overview,
-                lessons: oc.overview?.lessons?.map(l => {
-                  return {
-                    ...l,
-                    assignments: l?.assignments?.map(a => {
-                      return {
-                        ...a,
-                        sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
-                          return {
-                            ...sheet,
-                            value: sheet.value?.replace(oldUuid, newUuid),
-                          };
-                        }),
-                      };
-                    }),
-                    comments: l?.comments?.map(c => {
-                      return {
-                        ...c,
-                        user: {
-                          ...c.user,
-                          'fields.profile_picture_image_url': c.user[
-                            'fields.profile_picture_image_url'
-                          ]?.replace(oldUuid, newUuid),
-                        },
-                      };
-                    }),
-                    related_lessons: l?.related_lessons?.map(rl => {
-                      return {
-                        ...rl,
-                        thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                      };
-                    }),
-                    thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                    video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => {
-                      return {
-                        ...vpe,
-                        file: vpe.file?.replace(oldUuid, newUuid),
-                      };
-                    }),
-                  };
-                }),
-                thumbnail_url: oc.overview?.thumbnail_url?.replace(oldUuid, newUuid),
-              },
-              lesson: oc.lesson && {
-                ...oc.lesson,
-                assignments: oc.lesson?.assignments?.map(a => {
-                  return {
+                lessons: oc.overview?.lessons?.map(l => ({
+                  ...l,
+                  assignments: l?.assignments?.map(a => ({
                     ...a,
-                    sheet_music_image_url: a.sheet_music_image_url?.map(sheet => {
-                      return {
-                        ...sheet,
-                        value: sheet.value?.replace(oldUuid, newUuid),
-                      };
-                    }),
-                  };
-                }),
-                comments: oc.lesson?.comments?.map(c => {
-                  return {
+                    sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
+                      ...sheet,
+                      value: sheet.value?.replace(oldUuid, newUuid),
+                    })),
+                  })),
+                  comments: l?.comments?.map(c => ({
                     ...c,
                     user: {
                       ...c.user,
@@ -829,21 +812,46 @@ const getOfflineContent = () =>
                         'fields.profile_picture_image_url'
                       ]?.replace(oldUuid, newUuid),
                     },
-                  };
-                }),
-                related_lessons: oc.lesson?.related_lessons?.map(rl => {
-                  return {
+                  })),
+                  related_lessons: l?.related_lessons?.map(rl => ({
                     ...rl,
                     thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                  };
-                }),
-                thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
-                video_playback_endpoints: oc.lesson?.video_playback_endpoints?.map(vpe => {
-                  return {
+                  })),
+                  thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
+                  video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => ({
                     ...vpe,
                     file: vpe.file?.replace(oldUuid, newUuid),
-                  };
-                }),
+                  })),
+                })),
+                thumbnail_url: oc.overview?.thumbnail_url?.replace(oldUuid, newUuid),
+              },
+              lesson: oc.lesson && {
+                ...oc.lesson,
+                assignments: oc.lesson?.assignments?.map(a => ({
+                  ...a,
+                  sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
+                    ...sheet,
+                    value: sheet.value?.replace(oldUuid, newUuid),
+                  })),
+                })),
+                comments: oc.lesson?.comments?.map(c => ({
+                  ...c,
+                  user: {
+                    ...c.user,
+                    'fields.profile_picture_image_url': c.user[
+                      'fields.profile_picture_image_url'
+                    ]?.replace(oldUuid, newUuid),
+                  },
+                })),
+                related_lessons: oc.lesson?.related_lessons?.map(rl => ({
+                  ...rl,
+                  thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
+                })),
+                thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
+                video_playback_endpoints: oc.lesson?.video_playback_endpoints?.map(vpe => ({
+                  ...vpe,
+                  file: vpe.file?.replace(oldUuid, newUuid),
+                })),
               },
             },
           };
@@ -859,8 +867,8 @@ const getOfflineContent = () =>
     }
   });
 
-const getPublicOfflineFiles = () =>
-  new Promise(async (res: (value?: string[]) => void) => {
+const getPublicOfflineFiles = (): Promise<void | string[]> =>
+  new Promise<string[] | void>(async res => {
     try {
       res(await ReactNativeBlobUtil.fs.ls(publicPath));
     } catch (e) {
@@ -868,8 +876,8 @@ const getPublicOfflineFiles = () =>
     }
   });
 
-const getSecuredOfflineFiles = () =>
-  new Promise(async (res: (value?: string[]) => void) => {
+const getSecuredOfflineFiles = (): Promise<void | string[]> =>
+  new Promise<string[] | void>(async res => {
     try {
       res(await ReactNativeBlobUtil.fs.ls(securedPath));
     } catch (e) {
@@ -877,7 +885,7 @@ const getSecuredOfflineFiles = () =>
     }
   });
 
-const setOfflineContent = (id?: string | string[]) => {
+const setOfflineContent = (id?: string | string[]): void => {
   if (id?.includes('.png') || id?.includes('.jpg') || id?.includes('.jpeg')) {
     return;
   }
@@ -886,7 +894,7 @@ const setOfflineContent = (id?: string | string[]) => {
     .catch(() => {});
 };
 
-const dldingToDlded = (oc: IOfflineContent) =>
+const dldingToDlded = (oc: IOfflineContent): IDownloading[] =>
   (oc.dlding = oc?.dlding?.filter(d => {
     if (offlineFiles?.includes(d?.id)) {
       oc?.dlded?.push(d?.destination);
@@ -896,13 +904,13 @@ const dldingToDlded = (oc: IOfflineContent) =>
     return true;
   }));
 
-const handleLessonSize = (oc: IOfflineContent, taskId: string, bytes: number) => {
+const handleLessonSize = (oc: IOfflineContent, taskId: string, bytes: number): void => {
   if (!oc?.sizeInBytes) {
     oc.sizeInBytes = 0;
   }
   oc.sizeInBytes += bytes;
   oc.fileSizes[taskId] = bytes;
-  let sizes = Object.keys(oc.fileSizes);
+  const sizes = Object.keys(oc.fileSizes);
   if (sizes?.includes('largestFile')) {
     sizes?.splice(sizes.indexOf('largestFile'), 1);
   }
@@ -911,39 +919,41 @@ const handleLessonSize = (oc: IOfflineContent, taskId: string, bytes: number) =>
   }
 };
 
-const fetchExpectedBytes = (oc: IOfflineContent, dlding?: IDownloading) => {
+const fetchExpectedBytes = (oc: IOfflineContent, dlding?: IDownloading): void => {
   if (dlding && !oc?.fileSizes[dlding?.id]) {
     oc.fileSizes[dlding.id] = 1;
     fetch(dlding?.url).then((res: any) =>
-      handleLessonSize(oc, dlding.id, parseInt(res?.headers?.map?.['content-length']) || 0)
+      handleLessonSize(oc, dlding.id, parseInt(res?.headers?.map?.['content-length'], 10) || 0)
     );
   }
 };
 
-const deleteLesson = async function (
+const deleteLesson = async (
   id: number,
   tasks?: React.MutableRefObject<IDownloads[]>,
   setStatus?: (arg0: string) => void
-) {
+): Promise<void> => {
   setStatus?.('Download');
   await deletePromise;
-  let oc =
+  const oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc => offc?.overview?.lessons?.some(l => l.id === id));
-  let overviewContainingLesson = Object.values(offlineContent).find(
-    oc => oc.overview?.lessons?.some(l => l.id === id)
+  const overviewContainingLesson = Object.values(offlineContent).find(
+    oContent => oContent?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson) {
     overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
   } else {
-    let filterToBeDeleted = (toBeDeleted: string[] = []) =>
-      toBeDeleted.filter(
+    const filterToBeDeleted = (toBeDel: string[] = []): string[] =>
+      toBeDel.filter(
         tbd =>
           Object.values(offlineContent)?.filter(
             o => o.dlded.includes(tbd) || o.dlding?.some(d => d.destination === tbd)
           ).length === 1
       );
-    let toBeDeleted: any = filterToBeDeleted(oc?.dlded?.concat(oc?.dlding.map(d => d.destination)));
+    const toBeDeleted: any = filterToBeDeleted(
+      oc?.dlded?.concat(oc?.dlding.map(d => d.destination))
+    );
     offlineFiles = offlineFiles?.filter(
       of => !toBeDeleted?.some((tbd: string | string[]) => tbd.includes(of))
     );
@@ -967,7 +977,7 @@ const deleteLesson = async function (
   if (tasks?.current) {
     tasks.current = [];
   }
-  let taskId = offlineContent[id].fileSizes.largestFile;
+  const taskId = offlineContent[id].fileSizes.largestFile;
   delete offlineContent?.[oc.id];
   console.log('updated offline content-> ', offlineContent);
 
@@ -980,10 +990,10 @@ const deleteLesson = async function (
   setOfflineContent();
 };
 
-const handleOldOfflineFormat = () => {
-  let oc = offlineContent;
+const handleOldOfflineFormat = (): void => {
+  const oc = offlineContent;
   Object.keys(oc).map(k => {
-    let contentEntity = oc[k]?.entity;
+    const contentEntity = oc[k]?.entity;
     if (contentEntity) {
       oc[k] = {
         dlded: contentEntity.dldedFiles.map((df: string) =>
@@ -992,22 +1002,23 @@ const handleOldOfflineFormat = () => {
         dlding: [],
         fileSizes: {},
         sizeInBytes: contentEntity.offlineSize,
-        id: parseInt(k),
+        id: parseInt(k, 10),
       };
-      const commentsHandle = (comments: IComment[]) =>
+      const commentsHandle = (comments: IComment[]): IComment[] =>
         comments?.map(c => ({
           ...c,
           user: {
             ...c.user,
-            'fields.profile_picture_image_url': oc[k].dlded.find(dld =>
-              dld.includes(c.user['fields.profile_picture_image_url'])
-            ),
+            'fields.profile_picture_image_url':
+              oc[k]?.dlded?.find(
+                dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
+              ) || '',
           },
         }));
-      const videoHandle = (video: IVideo) => [
+      const videoHandle = (video: IVideo): IVideo[] => [
         {
           ...video,
-          file: oc[k].dlded.find((dld: string | string[]) => dld.includes(video.file)),
+          file: oc[k]?.dlded?.find((dld: string | string[]) => dld?.includes(video?.file)) || '',
         },
       ];
       if (contentEntity?.lessons) {
@@ -1033,7 +1044,7 @@ const handleOldOfflineFormat = () => {
       }
     }
 
-    let handleLesson = (lesson: ILesson): void => {
+    const handleLesson = (lesson: ILesson): void => {
       lesson.style = lesson.style;
       lesson.difficulty = lesson.difficulty;
       lesson.title = lesson.title;
@@ -1095,5 +1106,5 @@ const hd720OrHighestVideo = (videos: IVideo[]): IVideo[] => {
   return videoEndpoint ? [videoEndpoint] : [];
 };
 
-export default Download_V2;
+export default DownloadV2;
 export { offlineContent, resumeAll, addDownloadEventListener };
