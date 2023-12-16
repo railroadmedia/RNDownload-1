@@ -5,7 +5,7 @@ const DEVICE_WIDTH = Dimensions.get('screen').width;
 
 export const WINDOW_WIDTH = DEVICE_WIDTH < DEVICE_HEIGHT ? DEVICE_WIDTH : DEVICE_HEIGHT;
 
-export const pixR = PixelRatio.get();
+export const PIX_RATIO = PixelRatio.get();
 
 export const IS_IOS = Platform.OS === 'ios';
 
