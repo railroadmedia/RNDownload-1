@@ -17,7 +17,7 @@ const RNBackgroundDownloader = require('react-native-background-downloader').def
 
 import AnimatedCustomAlert from '../components/AnimatedCustomAlert';
 import { downloadSvg, trash, stopDownload } from '../img/svgs';
-import { FONT_MULTIPLIER, WINDOW_WIDTH, IS_IOS, PIX_RATIO } from '../helper';
+import { FONT_MULTIPLIER, IS_IOS } from '../helper';
 import type {
   Brand,
   IComment,
@@ -28,6 +28,7 @@ import type {
   IResource,
   IVideo,
 } from '../entity';
+import { derefLesson, fetchExpectedBytes, handleLessonSize } from './DownloadHelper';
 
 interface IDownloads {
   bytesWritten: number;
@@ -204,7 +205,6 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
       );
     if (oc) {
       if (oc?.dlding?.length) {
-        console.log('resume this -> oc?.dlding?.length -> ', oc?.dlding?.length);
         setStatus('Downloading');
         if (!oc?.fileSizes?.largestFile) {
           return (listenForLargestFile = addDownloadEventListener(p => {
@@ -509,6 +509,21 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     alert.current?.toggle();
   };
 
+  const onDownloadBtnPress = (): void => {
+    if (status === 'Download') {
+      download();
+    } else {
+      alert.current?.toggle(
+        'Hold your horses...',
+        offlineContent[entity?.id]
+          ? offlineContent[entity?.id].lesson
+            ? 'This will delete this lesson from\nyour device and cannot be undone.\nAre you sure about this?'
+            : 'This will delete this course from\nyour device and cannot be undone.\nAre you sure about this?'
+          : 'This lesson has been downloaded\nas part of a Course.\nAre you sure you want to delete the\nCourse and all of its Course Parts?\nYou will no longer be able to\naccess this lesson offline.'
+      );
+    }
+  };
+
   return (
     <>
       <TouchableOpacity
@@ -517,19 +532,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
           { alignItems: 'center', justifyContent: 'space-around', opacity: disabled ? 0.5 : 1 },
         ]}
         disabled={disabled}
-        onPress={
-          status === 'Download'
-            ? download
-            : () =>
-                alert.current?.toggle(
-                  'Hold your horses...',
-                  offlineContent[entity?.id]
-                    ? offlineContent[entity?.id].lesson
-                      ? 'This will delete this lesson from\nyour device and cannot be undone.\nAre you sure about this?'
-                      : 'This will delete this course from\nyour device and cannot be undone.\nAre you sure about this?'
-                    : 'This lesson has been downloaded\nas part of a Course.\nAre you sure you want to delete the\nCourse and all of its Course Parts?\nYou will no longer be able to\naccess this lesson offline.'
-                )
-        }
+        onPress={onDownloadBtnPress}
       >
         {status === 'Download' ? (
           downloadSvg(iconStyle)
@@ -630,7 +633,6 @@ const resumeAll = async (
 
   handleOldOfflineFormat();
   allDownloads = await RNBackgroundDownloader.checkForExistingDownloads();
-  console.log('allDownloads-> ', allDownloads);
 
   Object.values(offlineContent).map(oc => {
     dldingToDlded(oc);
@@ -862,7 +864,6 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
         res(objContent);
       });
     } catch (e) {
-      console.log('error -> ', e);
       res({});
     }
   });
@@ -903,30 +904,6 @@ const dldingToDlded = (oc: IOfflineContent): IDownloading[] =>
     }
     return true;
   }));
-
-const handleLessonSize = (oc: IOfflineContent, taskId: string, bytes: number): void => {
-  if (!oc?.sizeInBytes) {
-    oc.sizeInBytes = 0;
-  }
-  oc.sizeInBytes += bytes;
-  oc.fileSizes[taskId] = bytes;
-  const sizes = Object.keys(oc.fileSizes);
-  if (sizes?.includes('largestFile')) {
-    sizes?.splice(sizes.indexOf('largestFile'), 1);
-  }
-  if (sizes?.some(s => s?.includes('Video'))) {
-    oc.fileSizes.largestFile = sizes.reduce((a, b) => (oc.fileSizes[a] > oc.fileSizes[b] ? a : b));
-  }
-};
-
-const fetchExpectedBytes = (oc: IOfflineContent, dlding?: IDownloading): void => {
-  if (dlding && !oc?.fileSizes[dlding?.id]) {
-    oc.fileSizes[dlding.id] = 1;
-    fetch(dlding?.url).then((res: any) =>
-      handleLessonSize(oc, dlding.id, parseInt(res?.headers?.map?.['content-length'], 10) || 0)
-    );
-  }
-};
 
 const deleteLesson = async (
   id: number,
@@ -979,7 +956,6 @@ const deleteLesson = async (
   }
   const taskId = offlineContent[id].fileSizes.largestFile;
   delete offlineContent?.[oc.id];
-  console.log('updated offline content-> ', offlineContent);
 
   if (taskId) {
     DeviceEventEmitter.emit('dldProgress', {
@@ -1077,33 +1053,6 @@ const handleOldOfflineFormat = (): void => {
       oc[k]?.overview?.lessons?.map(l => handleLesson(l));
     }
   });
-};
-
-const derefLesson = (lesson: ILesson, comments: IComment[] | undefined, brand: Brand): ILesson => {
-  const result: ILesson = {
-    ...lesson,
-    brand,
-    video_playback_endpoints: lesson?.video_playback_endpoints
-      ? hd720OrHighestVideo(lesson.video_playback_endpoints)
-      : [],
-    resources: Object.values(lesson?.resources || {})?.map(r => ({
-      ...r,
-    })),
-  };
-  if (lesson?.assignments) {
-    result.assignments = JSON.parse(JSON.stringify(lesson.assignments));
-  }
-  result.comments = JSON.parse(JSON.stringify(comments || lesson?.comments));
-  return result;
-};
-
-const hd720OrHighestVideo = (videos: IVideo[]): IVideo[] => {
-  const videoEndpoint = videos
-    ?.filter(v => v?.height <= 720)
-    ?.filter(v => v?.height <= -~WINDOW_WIDTH * PIX_RATIO)
-    ?.sort((a, b) => (a?.height < b.height ? -1 : 1))
-    ?.pop();
-  return videoEndpoint ? [videoEndpoint] : [];
 };
 
 export default DownloadV2;
