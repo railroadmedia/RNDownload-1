@@ -46,6 +46,7 @@
     "preset": "react-native"
   },
   "eslintIgnore": [
-    "node_modules/"
+    "node_modules/",
+    ".eslintrc.js"
   ]
 }

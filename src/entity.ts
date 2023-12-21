@@ -3,7 +3,7 @@ export type Brand = 'drumeo' | 'pianote' | 'guitareo' | 'singeo';
 export interface IComment {
   comment: string;
   created_on: string;
-  created_on_diff: string;
+  created_on_diff?: string;
   id: number;
   user_id: number;
   is_liked: boolean;
@@ -72,7 +72,7 @@ export interface ICoach {
 }
 
 export interface IResource {
-  resource_id: string;
+  resource_id: number;
   resource_name: string;
   resource_url: string;
   extension: string;
