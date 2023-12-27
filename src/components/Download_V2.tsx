@@ -165,7 +165,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
       setStatus('Download');
       return Alert.alert(
         `Oh no, we dropped a stick...`,
-        'Drumeo is down, we are working on a fix and it should be back shortly, thank you for your patience.',
+        'Musora is down, we are working on a fix and it should be back shortly, thank you for your patience.',
         [{ text: 'OK' }],
         { cancelable: false }
       );
