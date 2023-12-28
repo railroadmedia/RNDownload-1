@@ -5,14 +5,14 @@ import DeviceInfo from 'react-native-device-info';
 import { IS_IOS } from '../helper';
 import type { IResource } from '../entity';
 
-const getTypeByExtension = (path: string | string[]): string | undefined => {
-  if (path === 'mp3' || path.indexOf('mp3') > 0) {
+const getTypeByExtension = (path: string): string | undefined => {
+  if (path === 'mp3' || path?.indexOf('mp3') > 0) {
     return 'audio/mp3';
   }
-  if (path === 'pdf' || path.indexOf('pdf') > 0) {
+  if (path === 'pdf' || path?.indexOf('pdf') > 0) {
     return 'application/pdf';
   }
-  if (path === 'zip' || path.indexOf('zip') > 0) {
+  if (path === 'zip' || path?.indexOf('zip') > 0) {
     return 'application/zip';
   }
 };
@@ -38,15 +38,17 @@ export const downloadRes = (
       resourceUrl = resource?.resource_url;
     }
     const dirs = ReactNativeBlobUtil.fs.dirs;
+    const resExtension = resource?.extension || resource?.resource_url.split('.').pop();
+
     const filePath = IS_IOS
       ? `${dirs.DocumentDir}/${lessonTitle?.replace(
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
-        )}/${resource?.resource_id}.${resource?.extension}`
+        )}/${resource?.resource_id}.${resExtension}`
       : `${dirs.DownloadDir}/${lessonTitle?.replace(
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
-        )}/${resource?.resource_id}.${resource?.extension}`;
+        )}/${resource?.resource_id}.${resExtension}`;
     const exists = await ReactNativeBlobUtil.fs.exists(filePath);
     if (exists) {
       resolve();
@@ -70,7 +72,6 @@ export const downloadRes = (
             fileCache: true,
             path: filePath,
           });
-          // console.log('this id1', this[id]);
 
           fetchConf
             .fetch('GET', resourceUrl)
@@ -92,10 +93,10 @@ export const downloadRes = (
               }
               if (!getTypeByExtension(filePath)) {
                 ReactNativeBlobUtil.fs
-                  .mv(res.data, `${res.data}${resource?.extension}`)
+                  .mv(res.data, `${res.data}${resExtension}`)
                   .then(() => {
                     if (!notOppeningAfterDld) {
-                      ReactNativeBlobUtil.ios.openDocument(`${res.data}${resource?.extension}`);
+                      ReactNativeBlobUtil.ios.openDocument(`${res.data}${resExtension}`);
                     }
                   })
                   .catch(() => {
@@ -142,8 +143,8 @@ export const downloadRes = (
                 (free || Math.max(Number(internal_free), Number(external_free))) / 1024 / 1024;
               let hasSpace = false;
               if (
-                (resource?.extension === 'pdf' && freeSpaceInMb > 1) ||
-                (resource?.extension !== 'pdf' && freeSpaceInMb > 100)
+                (resExtension === 'pdf' && freeSpaceInMb > 1) ||
+                (resExtension !== 'pdf' && freeSpaceInMb > 100)
               ) {
                 hasSpace = true;
               }
@@ -165,14 +166,14 @@ export const downloadRes = (
                     .then(() => {
                       resolve();
                       if (!notOppeningAfterDld) {
-                        const extension = getTypeByExtension(resource?.extension);
+                        const extension = getTypeByExtension(resExtension || '');
                         if (resource?.wasWithoutExtension) {
                           ReactNativeBlobUtil.fs
-                            .mv(filePath, `${filePath}${resource?.extension}`)
+                            .mv(filePath, `${filePath}${resExtension}`)
                             .then(() => {
                               if (extension) {
                                 ReactNativeBlobUtil.android.actionViewIntent(
-                                  `${filePath}${resource?.extension}`,
+                                  `${filePath}${resExtension}`,
                                   extension
                                 );
                               }
