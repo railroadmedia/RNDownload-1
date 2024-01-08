@@ -19,7 +19,7 @@ export const downloadSvg = ({ width, height, fill }: ISvg): ReactElement => (
   </Svg>
 );
 export const stopDownload = ({ width, height, fill }: ISvg): ReactElement => (
-  <Svg width={width} height={height} viewBox='0 0 16 16' fill='none'>
+  <Svg width={width} height={height} viewBox='0 0 13 13' fill='none'>
     <Path
       d='M9.25352 2.05762H3.16433C2.70591 2.05762 2.33398 2.46335 2.33398 2.96345V9.6062C2.33398 10.1063 2.70591 10.512 3.16433 10.512H9.25352C9.71193 10.512 10.0839 10.1063 10.0839 9.6062V2.96345C10.0839 2.46335 9.71193 2.05762 9.25352 2.05762Z'
       fill={fill}
