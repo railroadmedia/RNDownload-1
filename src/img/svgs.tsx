@@ -1,151 +1,135 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import Svg, { G, Path } from 'react-native-svg';
 
-export const download = props => (
-  <Svg
-    width={props.width}
-    height={props.height}
-    viewBox='0 0 16 16'
-    fill='none'
-  >
+export interface ISvg {
+  fill: string;
+  width?: number | string;
+  height?: number | string;
+}
+
+export const downloadSvg = ({ width, height, fill }: ISvg): ReactElement => (
+  <Svg width={width} height={height} viewBox='0 0 16 16' fill='none'>
     <Path
       d='M3.14966 10.5005L3.14966 11.1255C3.14966 12.161 3.98912 13.0005 5.02466 13.0005L11.2747 13.0005C12.3102 13.0005 13.1497 12.161 13.1497 11.1255L13.1497 10.5005M10.6497 8.00049L8.14966 10.5005M8.14966 10.5005L5.64966 8.00049M8.14966 10.5005L8.14966 3.00049'
-      stroke={props.fill}
+      stroke={fill}
       strokeWidth='1.5'
       strokeLinecap='round'
       strokeLinejoin='round'
     />
   </Svg>
 );
-export const stopDownload = props => (
-  <Svg
-    width={props.width}
-    height={props.height}
-    viewBox='0 0 16 16'
-    fill='none'
-  >
+export const stopDownload = ({ width, height, fill }: ISvg): ReactElement => (
+  <Svg width={width} height={height} viewBox='0 0 13 13' fill='none'>
     <Path
       d='M9.25352 2.05762H3.16433C2.70591 2.05762 2.33398 2.46335 2.33398 2.96345V9.6062C2.33398 10.1063 2.70591 10.512 3.16433 10.512H9.25352C9.71193 10.512 10.0839 10.1063 10.0839 9.6062V2.96345C10.0839 2.46335 9.71193 2.05762 9.25352 2.05762Z'
-      fill={props.fill}
+      fill={fill}
     />
   </Svg>
 );
-export const x = props => (
-  <Svg
-    viewBox='0 0 32 32'
-    version='1.1'
-    style={{ height: props.height, width: props.width, fill: props.fill }}
-  >
+export const x = ({ width, height, fill }: ISvg): ReactElement => (
+  <Svg viewBox='0 0 32 32' style={{ height: height, width: width }} fill={fill}>
     <Path
       id='X'
       d='M16,14.586l8.485,-8.485c0.391,-0.391 1.024,-0.391 1.414,0c0.391,0.39 0.391,1.023 0,1.414l-8.485,8.485l8.485,8.485c0.391,0.391 0.391,1.024 0,1.414c-0.39,0.391 -1.023,0.391 -1.414,0l-8.485,-8.485l-8.485,8.485c-0.391,0.391 -1.024,0.391 -1.414,0c-0.391,-0.39 -0.391,-1.023 0,-1.414l8.485,-8.485l-8.485,-8.485c-0.391,-0.391 -0.391,-1.024 0,-1.414c0.39,-0.391 1.023,-0.391 1.414,0l8.485,8.485Z'
     />
   </Svg>
 );
-export const trash = props => (
-  <Svg
-    width={props.width}
-    height={props.height}
-    viewBox='0 0 16 16'
-    fill='none'
-  >
+export const trash = ({ width, height, fill }: ISvg): ReactElement => (
+  <Svg width={width} height={height} viewBox='0 0 16 16' fill='none'>
     <Path
       d='M12.5247 4.87549L11.9826 12.4645C11.9359 13.1187 11.3916 13.6255 10.7358 13.6255H5.56356C4.90776 13.6255 4.36346 13.1187 4.31673 12.4645L3.77466 4.87549M6.89966 7.37549V11.1255M9.39966 7.37549V11.1255M10.0247 4.87549V3.00049C10.0247 2.65531 9.74484 2.37549 9.39966 2.37549H6.89966C6.55448 2.37549 6.27466 2.65531 6.27466 3.00049V4.87549M3.14966 4.87549H13.1497'
-      stroke={props.fill}
+      stroke={fill}
       strokeWidth='1.5'
       strokeLinecap='round'
       strokeLinejoin='round'
     />
   </Svg>
 );
-export const zip = props => (
+export const zip = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg
     viewBox='0 0 100 100'
     style={{
-      width: props.width,
-      height: props.height,
-      fill: props.fill
+      width: width,
+      height: height,
     }}
+    fill={fill}
   >
     <G transform='matrix(0.195274,0,0,0.195274,12.5073,0.0195274)'>
       <Path
         d='M128.3,160L128.3,192L160.3,192L160.3,160L128.3,160ZM192.3,64L160.3,64L160.3,96L192.3,96L192.3,64ZM128.3,96L128.3,128L160.3,128L160.3,96L128.3,96ZM192.3,128L160.3,128L160.3,160L192.3,160L192.3,128ZM369.9,97.9L286,14C277,5 264.8,-0.1 252.1,-0.1L48,-0.1C21.5,0 0,21.5 0,48L0,464C0,490.5 21.5,512 48,512L336,512C362.5,512 384,490.5 384,464L384,131.9C384,119.2 378.9,106.9 369.9,97.9ZM256,51.9L332.1,128L256,128L256,51.9ZM336,464L48,464L48,48L127.7,48L127.7,64L159.7,64L159.7,48L208,48L208,152C208,165.3 218.7,176 232,176L336,176L336,464ZM194.2,265.7C193.1,260.1 188.2,256 182.4,256L160.3,256L160.3,224L128.3,224L128.3,256L108.6,353.1C102,385.6 126.8,416 160,416C193.1,416 217.9,385.8 211.5,353.4L194.2,265.7ZM160.3,390.1C142.4,390.1 127.9,378 127.9,363.1C127.9,348.2 142.4,336.1 160.3,336.1C178.2,336.1 192.7,348.2 192.7,363.1C192.7,378 178.2,390.1 160.3,390.1ZM192.3,192L160.3,192L160.3,224L192.3,224L192.3,192Z'
-        style={{ fillRule: 'nonzero' }}
+        fillRule={'nonzero'}
       />
     </G>
   </Svg>
 );
-export const mp4 = props => (
+export const mp4 = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg
     viewBox='0 0 100 100'
-    version='1.1'
     style={{
-      width: props.width,
-      height: props.height,
-      fill: props.fill
+      width: width,
+      height: height,
     }}
+    fill={fill}
   >
     <G transform='matrix(0.173611,0,0,0.173611,-1.5099e-14,5.55556)'>
       <Path
         d='M543.9,96C537.7,96 531.4,97.8 525.7,101.7L416,170.1L416,111.8C416,85.4 392.8,64 364.2,64L51.8,64C23.2,64 0,85.4 0,111.8L0,400.2C0,426.6 23.2,448 51.8,448L364.2,448C392.8,448 416,426.6 416,400.2L416,341.9L525.7,410.2C531.4,414.2 537.8,415.9 543.9,415.9C560.5,415.9 576,402.9 576,384.4L576,127.5C576,109 560.5,96 543.9,96ZM368,200L368,398.9C367.4,399.3 366.2,400 364.2,400L51.8,400C49.8,400 48.6,399.4 48,398.9L48,113.1C48.6,112.7 49.8,112 51.8,112L364.2,112C366.2,112 367.4,112.6 368,113.1L368,200ZM528,355.2L416,285.4L416,226.7L528,156.9L528,355.2Z'
-        style={{ fillRule: 'nonzero' }}
+        fillRule={'nonzero'}
       />
     </G>
   </Svg>
 );
-export const mp3 = props => (
+export const mp3 = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg
     style={{
-      width: props.width,
-      height: props.height,
-      fill: props.fill
+      width: width,
+      height: height,
     }}
+    fill={fill}
     viewBox='0 0 100 100'
   >
     <G transform='matrix(0.195312,0,0,0.195312,0,1.43003e-07)'>
       <Path
         d='M480.06,0C476.775,-0.001 473.51,0.505 470.38,1.5L166.38,97.5C153.102,101.685 144.009,114.078 144,128L144,363.09C129.049,355.802 112.633,352.009 96,352C43,352 0,387.81 0,432C0,476.19 43,512 96,512C145.38,512 185.56,480.84 190.91,440.91C191.588,438.072 191.944,435.167 191.97,432.25L191.97,256L463.97,170.09L463.97,299.09C449.027,291.809 432.623,288.017 416,288C363,288 320,323.81 320,368C320,412.19 363,448 416,448C465.38,448 505.56,416.81 510.94,376.88C511.565,374.183 511.9,371.428 511.94,368.66C511.94,368.44 512,368.22 512,368L512,32C512,14.468 497.592,0.033 480.06,0ZM96,464C67.72,464 48,447.12 48,432C48,416.88 67.72,400 96,400C124.28,400 144,416.84 144,432C144,447.16 124.28,464 96,464ZM464,368C464,383.12 444.28,400 416,400C387.72,400 368,383.12 368,368C368,352.88 387.72,336 416,336C444.28,336 464,352.84 464,368ZM464,119.75L192,205.66L192,139.75L464,53.88L464,119.75Z'
-        style='fill-rule:nonzero;'
+        fillRule={'nonzero'}
       />
     </G>
   </Svg>
 );
-export const pdf = props => (
+export const pdf = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg
     style={{
-      width: props.width,
-      height: props.height,
-      fill: props.fill
+      width: width,
+      height: height,
     }}
+    fill={fill}
     viewBox='0 0 100 100'
-    version='1.1'
   >
     <G transform='matrix(0.195274,0,0,0.195274,12.5073,0.0195274)'>
       <Path
         d='M369.9,97.9L286,14C277,5 264.8,-0.1 252.1,-0.1L48,-0.1C21.5,0 0,21.5 0,48L0,464C0,490.5 21.5,512 48,512L336,512C362.5,512 384,490.5 384,464L384,131.9C384,119.2 378.9,106.9 369.9,97.9ZM332.1,128L256,128L256,51.9L332.1,128ZM48,464L48,48L208,48L208,152C208,165.3 218.7,176 232,176L336,176L336,464L48,464ZM298.2,320.3C286,308.3 251.2,311.6 233.8,313.8C216.6,303.3 205.1,288.8 197,267.5C200.9,251.4 207.1,226.9 202.4,211.5C198.2,185.3 164.6,187.9 159.8,205.6C155.4,221.7 159.4,244.1 166.8,272.7C156.8,296.6 141.9,328.7 131.4,347.1C111.4,357.4 84.4,373.3 80.4,393.3C77.1,409.1 106.4,448.5 156.5,362.1C178.9,354.7 203.3,345.6 224.9,342C243.8,352.2 265.9,359 280.7,359C306.2,359 308.7,330.8 298.2,320.3ZM100.1,398.1C105.2,384.4 124.6,368.6 130.5,363.1C111.5,393.4 100.1,398.8 100.1,398.1ZM181.7,207.5C189.1,207.5 188.4,239.6 183.5,248.3C179.1,234.4 179.2,207.5 181.7,207.5ZM157.3,344.1C167,327.2 175.3,307.1 182,289.4C190.3,304.5 200.9,316.6 212.1,324.9C191.3,329.2 173.2,338 157.3,344.1ZM288.9,339.1C288.9,339.1 283.9,345.1 251.6,331.3C286.7,328.7 292.5,336.7 288.9,339.1Z'
-        style={{ fillRule: 'nonzero' }}
+        fillRule={'nonzero'}
       />
     </G>
   </Svg>
 );
-export const link = props => (
+export const link = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg
     viewBox='0 0 100 100'
-    version='1.1'
     style={{
-      fillRule: 'evenodd',
-      clipRule: 'evenodd',
-      strokeLinejoin: 'round',
-      strokeMiterlimit: 2,
-      width: props.width,
-      height: props.height,
-      fill: props.fill
+      width: width,
+      height: height,
     }}
+    fill={fill}
+    fillRule={'evenodd'}
+    clipRule={'evenodd'}
+    strokeLinejoin={'round'}
+    strokeMiterlimit={2}
   >
     <G transform='matrix(0.195312,0,0,0.195312,0,0)'>
       <Path
         d='M432,320L400,320C391.223,320 384,327.223 384,336L384,448L64,448L64,128L208,128C216.777,128 224,120.777 224,112L224,80C224,71.223 216.777,64 208,64L48,64C21.668,64 0,85.668 0,112L0,464C0,490.332 21.668,512 48,512L400,512C426.332,512 448,490.332 448,464L448,336C448,327.223 440.777,320 432,320ZM474.67,0L316,0C300.64,0 288,12.64 288,28L288,46.71C288.429,61.763 300.93,73.911 315.989,73.911C316.256,73.911 316.523,73.908 316.79,73.9L384,72L135.06,319.09L135,319.15C125.691,328.46 125.691,343.78 135,353.09L158.94,376.94L159,377C168.331,386.265 183.628,386.224 192.91,376.91L440,128L438.12,195.22L438.12,196C438.12,211.36 450.76,224 466.12,224L484,224C499.36,224 512,211.36 512,196L512,37.33C512,16.851 495.149,0 474.67,0Z'
-        style={{ fillRule: 'nonzero' }}
+        fillRule={'nonzero'}
       />
     </G>
   </Svg>
