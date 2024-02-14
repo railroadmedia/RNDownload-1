@@ -1031,8 +1031,8 @@ const handleOldOfflineFormat = (): void => {
         a.description = a.description;
         a.sheet_music_image_url = a.sheet_music_image_url;
       });
-      if (lesson.instructors) {
-        lesson.instructor = lesson.instructors?.map(i => ({
+      if (!!lesson.instructor) {
+        lesson.instructor = lesson.instructor?.map(i => ({
           id: i.id,
           name: i.name,
           biography: i.biography,
