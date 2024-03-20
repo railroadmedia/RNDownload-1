@@ -786,7 +786,10 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
 
       Promise.all(
         Object.values(ofc)?.map(oc => {
-          oldUuid = oc.dlded[0]?.substring(oc.dlded[0].indexOf('Application/') + 12, 36);
+          oldUuid = oc.dlded[0]?.substring(
+            oc.dlded[0]?.indexOf('Application/') + 12,
+            oc.dlded[0]?.indexOf('/Library')
+          );
           if (oldUuid === newUuid) {
             return { [oc.id]: oc };
           }
