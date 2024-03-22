@@ -234,34 +234,36 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
   };
 
   const download = async (): Promise<void> => {
-    setStatus('Downloading');
-    deletePromise = new Promise(async res => res(await deref()));
-    if (!(await deletePromise)) {
-      return;
-    }
-    const overview = offlineContent[entity?.id].overview;
-    const lessons = overview?.lessons?.filter(
-      l => !Object.values(offlineContent)?.some(oc => oc.id === l.id)
-    ) || [offlineContent[entity?.id]?.lesson as ILesson];
+    try {
+      setStatus('Downloading');
+      deletePromise = new Promise(async res => res(await deref()));
+      if (!(await deletePromise)) {
+        return;
+      }
+      const overview = offlineContent[entity?.id].overview;
+      const lessons = overview?.lessons?.filter(
+        l => !Object.values(offlineContent)?.some(oc => oc.id === l.id)
+      ) || [offlineContent[entity?.id]?.lesson as ILesson];
 
-    const promises = lessons?.map(l => downloadVideo(l as ILesson));
+      const promises = lessons?.map(l => downloadVideo(l as ILesson));
 
-    if (overview) {
-      promises.push(downloadThumb(overview));
-    }
+      if (overview) {
+        promises.push(downloadThumb(overview));
+      }
 
-    promises
-      .concat(lessons?.map(l => downloadThumb(l as ILesson)))
-      .concat(downloadResource(lessons))
-      .concat(downloadMp3s(lessons))
-      .concat(downloadAssignment(lessons))
-      .concat(downloadRelatedThumb(lessons))
-      .concat(downloadCommentUserProfile(lessons));
-    Promise.all(promises).then(() => {
-      setStatus('Downloaded');
+      promises
+        .concat(lessons?.map(l => downloadThumb(l as ILesson)))
+        .concat(downloadResource(lessons))
+        .concat(downloadMp3s(lessons))
+        .concat(downloadAssignment(lessons))
+        .concat(downloadRelatedThumb(lessons))
+        .concat(downloadCommentUserProfile(lessons));
+      Promise.all(promises).then(() => {
+        setStatus('Downloaded');
+        setOfflineContent();
+      });
       setOfflineContent();
-    });
-    setOfflineContent();
+    } catch (e) {}
   };
 
   const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
@@ -786,7 +788,10 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
 
       Promise.all(
         Object.values(ofc)?.map(oc => {
-          oldUuid = oc.dlded[0]?.substring(oc.dlded[0].indexOf('Application/') + 12, 36);
+          oldUuid = oc.dlded[0]?.substring(
+            oc.dlded[0]?.indexOf('Application/') + 12,
+            oc.dlded[0]?.indexOf('/Library')
+          );
           if (oldUuid === newUuid) {
             return { [oc.id]: oc };
           }
