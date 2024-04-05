@@ -13,6 +13,7 @@ import {
   AppState,
 } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
+import DeviceInfo from 'react-native-device-info';
 const RNBackgroundDownloader = require('react-native-background-downloader').default;
 
 import AnimatedCustomAlert from '../components/AnimatedCustomAlert';
@@ -397,16 +398,21 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
   const downloadResource = async (lessons: ILesson[]): Promise<void> => {
     if (!IS_IOS) {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-        {
-          title: 'Write to external Storage',
-          message: 'For downloading resources we need your permission',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        }
-      );
+      let granted = PermissionsAndroid.RESULTS.DENIED;
+      if (Number(DeviceInfo.getSystemVersion()) >= 13) {
+        granted = PermissionsAndroid.RESULTS.GRANTED;
+      } else {
+        granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: 'Write to external Storage',
+            message: 'For downloading resources we need your permission',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+      }
       if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
         return;
       }
@@ -425,9 +431,10 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
       .resources?.map(
         r =>
           new Promise<void>(res => {
-            const extension = r.resource_url.split('.').pop();
+            const extension = r?.extension || r?.resource_url.split('.').pop();
             const url = r.resource_url;
             const id = `${r.resource_id}.${extension}`;
+            
             downloadItem(
               id,
               url,
