@@ -38,7 +38,7 @@ export const downloadRes = (
       resourceUrl = resource?.resource_url;
     }
     const dirs = ReactNativeBlobUtil.fs.dirs;
-    const resExtension = resource?.extension || resource?.resource_url.split('.').pop();
+    const resExtension = resource?.resource_url?.split('.').pop();
 
     const filePath = IS_IOS
       ? `${dirs.DocumentDir}/${lessonTitle?.replace(
