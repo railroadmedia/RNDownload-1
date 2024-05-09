@@ -14,7 +14,9 @@ import {
 } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
-const RNBackgroundDownloader = require('react-native-background-downloader').default;
+import RNBackgroundDownloader, {
+  DownloadTask,
+} from '@kesha-antonov/react-native-background-downloader';
 
 import AnimatedCustomAlert from '../components/AnimatedCustomAlert';
 import { downloadSvg, trash, stopDownload } from '../img/svgs';
@@ -30,18 +32,6 @@ import type {
   IVideo,
 } from '../entity';
 import { derefLesson, fetchExpectedBytes, handleLessonSize } from './DownloadHelper';
-
-interface IDownloads {
-  bytesWritten: number;
-  id: string;
-  percent: number;
-  state: string;
-  totalBytes: number;
-  begin(arg0: (expectedBytes: number) => void): unknown;
-  progress(arg0: (p: number) => void): unknown;
-  done(arg0: () => void): unknown;
-  stop(): unknown;
-}
 
 let progresses: Record<string, number> = {};
 let allDownloads: any[] = [];
@@ -101,7 +91,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     height: propStyle?.iconSize?.height || 25,
     fill: propStyle?.iconDownloadColor || 'black',
   };
-  const tasks = useRef<IDownloads[]>([]);
+  const tasks = useRef<DownloadTask[]>([]);
   const progressWidth = useRef(0);
   const progressTranslateX = useRef(new Animated.Value(0));
 
@@ -140,8 +130,8 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
       }
       const oc = offlineContent[entity?.id];
       const largestDld = tasks.current?.find(t => t.id === oc?.fileSizes?.largestFile);
-      largestDld?.progress((p: number) =>
-        progress(p, oc, largestDld as IDownloads, undefined, updateValue)
+      largestDld?.progress(({ bytesDownloaded }) =>
+        progress(bytesDownloaded, oc, largestDld as DownloadTask, undefined, updateValue)
       );
     }
   };
@@ -201,8 +191,8 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     | undefined => {
     const oc =
       offlineContent[entity?.id] ||
-      Object.values(offlineContent).find(
-        offc => offc?.overview?.lessons?.some(l => l.id === entity?.id)
+      Object.values(offlineContent).find(offc =>
+        offc?.overview?.lessons?.some(l => l.id === entity?.id)
       );
     if (oc) {
       if (oc?.dlding?.length) {
@@ -222,7 +212,9 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
         tasks.current = allDownloads?.filter(ad => oc?.dlding?.some(d => d.id === ad.id));
         tasks.current.map(task => {
           if (oc?.fileSizes?.largestFile === task.id) {
-            task?.progress((p: number) => progress(p, oc, task, undefined, updateValue));
+            task?.progress(({ bytesDownloaded }) =>
+              progress(bytesDownloaded, oc, task, undefined, updateValue)
+            );
           }
           task?.done(() => done(oc, task.id, undefined, onDone));
         });
@@ -269,16 +261,15 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
   const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
-      .map(
-        l =>
-          Object.keys(l)
-            ?.filter(k => k.includes('_click_url'))
-            ?.map(key => ({
-              lesson: l,
-              id: `${l.id}${key}`,
-              key: key as keyof ILesson,
-              value: l[key as keyof ILesson],
-            }))
+      .map(l =>
+        Object.keys(l)
+          ?.filter(k => k.includes('_click_url'))
+          ?.map(key => ({
+            lesson: l,
+            id: `${l.id}${key}`,
+            key: key as keyof ILesson,
+            value: l[key as keyof ILesson],
+          }))
       )
       .flat()
       .map(
@@ -311,9 +302,8 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
   const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
-    lessons?.map(
-      l =>
-        l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
+    lessons?.map(l =>
+      l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
     );
     assignments?.map(
       a =>
@@ -434,7 +424,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
             const extension = r?.extension || r?.resource_url.split('.').pop();
             const url = r.resource_url;
             const id = `${r.resource_id}.${extension}`;
-            
+
             downloadItem(
               id,
               url,
@@ -455,62 +445,72 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
         url: url?.replace(/ /g, '%20'),
         destination: `${path}/${taskId}`,
       });
-      if (allDownloads.find(t => t.id === `${taskId}`)) {
-        done(oc, taskId, undefined, onDone);
-        return res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
-      }
-      let task = RNBackgroundDownloader.download({
-        id: taskId,
-        url: url?.replace(/ /g, '%20'),
-        destination: `${path}/${taskId}`,
-      });
-      const restart = (): void => {
-        delete progresses[taskId];
-        task.stop();
-        task = RNBackgroundDownloader.download({
+
+      if (url.includes('http')) {
+        if (allDownloads.find(t => t.id === `${taskId}`)) {
+          console.log('done', taskId);
+          done(oc, taskId, undefined, onDone);
+          return res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
+        }
+        console.log('downloadItem', taskId, url);
+        let task = RNBackgroundDownloader.download({
           id: taskId,
           url: url?.replace(/ /g, '%20'),
           destination: `${path}/${taskId}`,
         });
-        allDownloads.map((ad, i) => {
-          if (ad.id === taskId) {
-            allDownloads[i] = task;
-          }
-        });
-        resume();
-      };
-      const resume = (): void => {
-        task
-          .begin((expectedBytes: number) => handleLessonSize(oc, taskId, expectedBytes))
-          .progress((p: number) => progress(p, oc, task, undefined, updateValue))
-          .done(() => {
-            done(oc, taskId, undefined, onDone);
-            res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
-          })
-          .error((e: string | string[]) => {
-            if (e.includes('No such file or directory')) {
-              ReactNativeBlobUtil.fs.unlink(`${path}/${taskId}`).then(restart).catch(restart);
-            }
-            if (e.includes('No space left on device')) {
-              const title = (
-                offlineContent[entity?.id]?.overview || offlineContent[entity?.id]?.lesson
-              )?.title;
-              deleteLesson(entity?.id, tasks, setStatus);
-              Alert.alert(
-                `Error while downloading ${title}`,
-                'There is insufficient storage space on your device. Please free up some space and try again.',
-                [{ text: 'OK' }],
-                { cancelable: false }
-              );
-            }
-            if (e === 'REQUEST_NOT_SUCCESSFUL') {
-              done(oc, taskId, undefined, onDone);
+        const restart = (): void => {
+          delete progresses[taskId];
+          task.stop();
+          task = RNBackgroundDownloader.download({
+            id: taskId,
+            url: url?.replace(/ /g, '%20'),
+            destination: `${path}/${taskId}`,
+          });
+          allDownloads.map((ad, i) => {
+            if (ad.id === taskId) {
+              allDownloads[i] = task;
             }
           });
-        tasks.current.push(task);
-        allDownloads.push(task);
-      };
-      resume();
+          resume();
+        };
+        const resume = (): void => {
+          task
+            .begin(({ expectedBytes }: { expectedBytes: number; headers: any }) =>
+              handleLessonSize(oc, taskId, expectedBytes)
+            )
+            .progress(({ bytesDownloaded }: { bytesDownloaded: number; bytesTotal: number }) =>
+              progress(bytesDownloaded, oc, task, undefined, updateValue)
+            )
+            .done(() => {
+              console.log('done', taskId);
+              done(oc, taskId, undefined, onDone);
+              res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
+            })
+            .error(({ error }) => {
+              if (error.includes('No such file or directory')) {
+                ReactNativeBlobUtil.fs.unlink(`${path}/${taskId}`).then(restart).catch(restart);
+              }
+              if (error.includes('No space left on device')) {
+                const title = (
+                  offlineContent[entity?.id]?.overview || offlineContent[entity?.id]?.lesson
+                )?.title;
+                deleteLesson(entity?.id, tasks, setStatus);
+                Alert.alert(
+                  `Error while downloading ${title}`,
+                  'There is insufficient storage space on your device. Please free up some space and try again.',
+                  [{ text: 'OK' }],
+                  { cancelable: false }
+                );
+              }
+              if (error === 'REQUEST_NOT_SUCCESSFUL') {
+                done(oc, taskId, undefined, onDone);
+              }
+            });
+          tasks.current.push(task);
+          allDownloads.push(task);
+        };
+        resume();
+      }
     });
 
   const onDelete = (): void => {
@@ -596,7 +596,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
 const addDownloadEventListener = (
   callback: (
-    arg0: { val: any[]; allDownloads: IDownloads[]; largestDownloads: IDownloads[] } | any
+    arg0: { val: any[]; allDownloads: DownloadTask[]; largestDownloads: DownloadTask[] } | any
   ) => void
 ): {
   remove: () => void;
@@ -614,8 +614,8 @@ const addDownloadEventListener = (
         : {
             val,
             allDownloads,
-            largestDownloads: allDownloads?.filter(
-              ed => Object.values(offlineContent)?.some(oc => oc.fileSizes.largestFile === ed.id)
+            largestDownloads: allDownloads?.filter(ed =>
+              Object.values(offlineContent)?.some(oc => oc.fileSizes.largestFile === ed.id)
             ),
           }
     );
@@ -666,7 +666,7 @@ const resumeAll = async (
             ?.begin((expectedBytes: number) =>
               handleLessonSize(oc, task?.id as string, expectedBytes)
             )
-            ?.progress((p: number) => progress(p, oc, task as IDownloads, dlding))
+            ?.progress((p: number) => progress(p, oc, task as DownloadTask, dlding))
             ?.done(() => done(oc, task?.id as string, dlding))
             ?.error((e: string | string[]) => {
               if (e.includes('No such file or directory')) {
@@ -696,7 +696,7 @@ const resumeAll = async (
 const progress = (
   p: number,
   oc: IOfflineContent,
-  task: IDownloads,
+  task: DownloadTask,
   dlding?: IDownloading,
   updateValue?: (p: number) => void
 ): void => {
@@ -919,7 +919,7 @@ const dldingToDlded = (oc: IOfflineContent): IDownloading[] =>
 
 const deleteLesson = async (
   id: number,
-  tasks?: React.MutableRefObject<IDownloads[]>,
+  tasks?: React.MutableRefObject<DownloadTask[]>,
   setStatus?: (arg0: string) => void
 ): Promise<void> => {
   setStatus?.('Download');
@@ -927,8 +927,8 @@ const deleteLesson = async (
   const oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc => offc?.overview?.lessons?.some(l => l.id === id));
-  const overviewContainingLesson = Object.values(offlineContent).find(
-    oContent => oContent?.overview?.lessons?.some(l => l.id === id)
+  const overviewContainingLesson = Object.values(offlineContent).find(oContent =>
+    oContent?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson) {
     overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
@@ -998,8 +998,8 @@ const handleOldOfflineFormat = (): void => {
           user: {
             ...c.user,
             'fields.profile_picture_image_url':
-              oc[k]?.dlded?.find(
-                dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
+              oc[k]?.dlded?.find(dld =>
+                dld?.includes(c?.user?.['fields.profile_picture_image_url'])
               ) || '',
           },
         }));
