@@ -191,8 +191,8 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     | undefined => {
     const oc =
       offlineContent[entity?.id] ||
-      Object.values(offlineContent).find(offc =>
-        offc?.overview?.lessons?.some(l => l.id === entity?.id)
+      Object.values(offlineContent).find(
+        offc => offc?.overview?.lessons?.some(l => l.id === entity?.id)
       );
     if (oc) {
       if (oc?.dlding?.length) {
@@ -261,15 +261,16 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
   const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
-      .map(l =>
-        Object.keys(l)
-          ?.filter(k => k.includes('_click_url'))
-          ?.map(key => ({
-            lesson: l,
-            id: `${l.id}${key}`,
-            key: key as keyof ILesson,
-            value: l[key as keyof ILesson],
-          }))
+      .map(
+        l =>
+          Object.keys(l)
+            ?.filter(k => k.includes('_click_url'))
+            ?.map(key => ({
+              lesson: l,
+              id: `${l.id}${key}`,
+              key: key as keyof ILesson,
+              value: l[key as keyof ILesson],
+            }))
       )
       .flat()
       .map(
@@ -302,8 +303,9 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
 
   const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
-    lessons?.map(l =>
-      l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
+    lessons?.map(
+      l =>
+        l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
     );
     assignments?.map(
       a =>
@@ -614,8 +616,8 @@ const addDownloadEventListener = (
         : {
             val,
             allDownloads,
-            largestDownloads: allDownloads?.filter(ed =>
-              Object.values(offlineContent)?.some(oc => oc.fileSizes.largestFile === ed.id)
+            largestDownloads: allDownloads?.filter(
+              ed => Object.values(offlineContent)?.some(oc => oc.fileSizes.largestFile === ed.id)
             ),
           }
     );
@@ -927,8 +929,8 @@ const deleteLesson = async (
   const oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc => offc?.overview?.lessons?.some(l => l.id === id));
-  const overviewContainingLesson = Object.values(offlineContent).find(oContent =>
-    oContent?.overview?.lessons?.some(l => l.id === id)
+  const overviewContainingLesson = Object.values(offlineContent).find(
+    oContent => oContent?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson) {
     overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
@@ -998,8 +1000,8 @@ const handleOldOfflineFormat = (): void => {
           user: {
             ...c.user,
             'fields.profile_picture_image_url':
-              oc[k]?.dlded?.find(dld =>
-                dld?.includes(c?.user?.['fields.profile_picture_image_url'])
+              oc[k]?.dlded?.find(
+                dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
               ) || '',
           },
         }));
