@@ -221,7 +221,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
         }
         tasks.current = allDownloads?.filter(ad => oc?.dlding?.some(d => d.id === ad.id));
         tasks.current.map(task => {
-          if (oc?.fileSizes?.largestFile === task.id) {
+          if (oc?.fileSizes?.largestFile === task?.id) {
             task?.progress((p: number) => progress(p, oc, task, undefined, updateValue));
           }
           task?.done(() => done(oc, task.id, undefined, onDone));
@@ -434,7 +434,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
             const extension = r?.extension || r?.resource_url.split('.').pop();
             const url = r.resource_url;
             const id = `${r.resource_id}.${extension}`;
-            
+
             downloadItem(
               id,
               url,
@@ -615,7 +615,7 @@ const addDownloadEventListener = (
             val,
             allDownloads,
             largestDownloads: allDownloads?.filter(
-              ed => Object.values(offlineContent)?.some(oc => oc.fileSizes.largestFile === ed.id)
+              ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
           }
     );
@@ -724,10 +724,10 @@ const done = (
   dldingToDlded(oc);
   manageOfflinePath(oc);
   setOfflineContent(taskId);
-  if (!oc.dlding.length) {
+  if (!oc?.dlding?.length) {
     onDone?.();
   }
-  if (oc.fileSizes.largestFile === taskId) {
+  if (oc?.fileSizes?.largestFile === taskId) {
     DeviceEventEmitter.emit('dldProgress', {
       val: 1,
       id: taskId,
@@ -930,8 +930,8 @@ const deleteLesson = async (
   const overviewContainingLesson = Object.values(offlineContent).find(
     oContent => oContent?.overview?.lessons?.some(l => l.id === id)
   );
-  if (overviewContainingLesson) {
-    overviewContainingLesson.sizeInBytes += offlineContent[id].sizeInBytes;
+  if (overviewContainingLesson && offlineContent?.[id]) {
+    overviewContainingLesson.sizeInBytes += offlineContent?.[id]?.sizeInBytes || 0;
   } else {
     const filterToBeDeleted = (toBeDel: string[] = []): string[] =>
       toBeDel.filter(
@@ -966,8 +966,8 @@ const deleteLesson = async (
   if (tasks?.current) {
     tasks.current = [];
   }
-  const taskId = offlineContent[id].fileSizes.largestFile;
-  delete offlineContent?.[oc.id];
+  const taskId = offlineContent?.[id]?.fileSizes?.largestFile;
+  delete offlineContent?.[oc?.id];
 
   if (taskId) {
     DeviceEventEmitter.emit('dldProgress', {
