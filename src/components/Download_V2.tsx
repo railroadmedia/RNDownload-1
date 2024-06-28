@@ -145,9 +145,10 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
   const updateValue = (p: number): void => {
     if (route === 'Downloads') {
-      progressRef.current?.updateProgress?.(p);
+      progressRef.current?.updateProgress(p);
+    } else {
+      progressTranslateX.current?.setValue?.(-progressWidth.current * (1 - p));
     }
-    progressTranslateX.current?.setValue?.(-progressWidth.current * (1 - p));
   };
 
   const onDone = (): void => {
@@ -564,7 +565,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     <>
       <TouchableOpacity
         style={[
-          { alignItems: 'center', justifyContent: 'space-around', opacity: disabled ? 0.5 : 1 },
+          { alignItems: 'center', justifyContent: 'center', opacity: disabled ? 0.5 : 1 },
           propStyle?.touchable,
         ]}
         disabled={disabled}
@@ -583,18 +584,11 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
             {route === 'Downloads' ? (
               iconOnly ? (
                 !!isConnected ? (
-                  <CircularProgressBar size={20} strokeWidth={2} ref={progressRef}>
-                    <View
-                      style={{
-                        top: 4.5,
-                        left: 4.5,
-                        position: 'absolute',
-                        zIndex: -1,
-                      }}
-                    >
-                      {stopDownload({ ...iconStyle, height: 11, width: 11 })}
-                    </View>
-                  </CircularProgressBar>
+                  <CircularProgressBar
+                    size={20}
+                    color={propStyle?.iconDownloadColor || 'black'}
+                    ref={progressRef}
+                  />
                 ) : (
                   noInternetSvg({ ...iconStyle, fill: '#B91C1C' })
                 )
@@ -727,7 +721,7 @@ const resumeAll = async (
         };
         const resume = (): void => {
           task
-            ?.begin((expectedBytes: number) =>
+            ?.begin(({ expectedBytes }: { expectedBytes: number; headers: any }) =>
               handleLessonSize(oc, task?.id as string, expectedBytes)
             )
             ?.progress((p: { bytesDownloaded: number; bytesTotal: number }) =>
