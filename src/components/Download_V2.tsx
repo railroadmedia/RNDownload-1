@@ -84,6 +84,7 @@ interface IDownloadV2 {
     };
   };
   onDone?: () => void;
+  onDelete?: () => void;
   securedPath?: string;
   publicPath?: string;
 }
@@ -99,6 +100,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     styles: propStyle,
     disabled,
     onDone: onDoneProps,
+    onDelete: onDeleteProps,
   } = props;
   const iconStyle = {
     width: propStyle?.iconSize?.width || 25,
@@ -542,6 +544,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     });
 
   const onDelete = (): void => {
+    onDeleteProps?.();
     deleteLesson(entity?.id, tasks, setStatus);
     alert.current?.toggle();
   };
