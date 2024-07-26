@@ -678,6 +678,7 @@ const addDownloadEventListener = (
             largestDownloads: allDownloads?.filter(
               ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
+            currentDownloads: Object.values(offlineContent)?.map(oc => oc?.dlding?.length)?.length,
           }
     );
   };
