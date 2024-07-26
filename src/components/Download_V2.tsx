@@ -657,7 +657,14 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
 const addDownloadEventListener = (
   callback: (
-    arg0: { val: any[]; allDownloads: DownloadTask[]; largestDownloads: DownloadTask[] } | any
+    arg0:
+      | {
+          val: any[];
+          allDownloads: DownloadTask[];
+          largestDownloads: DownloadTask[];
+          currentDownloads: IOfflineContent;
+        }
+      | any
   ) => void
 ): {
   remove: () => void;
@@ -678,7 +685,7 @@ const addDownloadEventListener = (
             largestDownloads: allDownloads?.filter(
               ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
-            currentDownloads: Object.values(offlineContent)?.map(oc => oc?.dlding?.length)?.length,
+            currentDownloads: offlineContent,
           }
     );
   };
