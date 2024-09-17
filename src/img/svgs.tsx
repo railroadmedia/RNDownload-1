@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import Svg, { G, Path } from 'react-native-svg';
+import Svg, { G, Path, Rect } from 'react-native-svg';
 
 export interface ISvg {
   fill: string;
@@ -22,6 +22,16 @@ export const stopDownload = ({ width, height, fill }: ISvg): ReactElement => (
   <Svg width={width} height={height} viewBox='0 0 13 13' fill='none'>
     <Path
       d='M9.25352 2.05762H3.16433C2.70591 2.05762 2.33398 2.46335 2.33398 2.96345V9.6062C2.33398 10.1063 2.70591 10.512 3.16433 10.512H9.25352C9.71193 10.512 10.0839 10.1063 10.0839 9.6062V2.96345C10.0839 2.46335 9.71193 2.05762 9.25352 2.05762Z'
+      fill={fill}
+    />
+  </Svg>
+);
+export const stopAltDownload = ({ width, height, fill }: ISvg): ReactElement => (
+  <Svg width={width} height={height} viewBox='0 0 20 20' fill='none'>
+    <Path
+      fillRule='evenodd'
+      clipRule='evenodd'
+      d='M3.42862 2.28564C2.79744 2.28564 2.28577 2.79732 2.28577 3.4285V15.9999C2.28577 16.6311 2.79744 17.1428 3.42862 17.1428H16.0001C16.6312 17.1428 17.1429 16.6311 17.1429 15.9999V3.4285C17.1429 2.79732 16.6312 2.28564 16.0001 2.28564H3.42862ZM3.8817 3.31041C3.56611 3.31041 3.31027 3.56624 3.31027 3.88184V15.5469C3.31027 15.8625 3.5661 16.1183 3.8817 16.1183H15.5467C15.8623 16.1183 16.1182 15.8625 16.1182 15.5469V3.88184C16.1182 3.56624 15.8623 3.31041 15.5467 3.31041H3.8817Z'
       fill={fill}
     />
   </Svg>
@@ -130,6 +140,78 @@ export const link = ({ width, height, fill }: ISvg): ReactElement => (
       <Path
         d='M432,320L400,320C391.223,320 384,327.223 384,336L384,448L64,448L64,128L208,128C216.777,128 224,120.777 224,112L224,80C224,71.223 216.777,64 208,64L48,64C21.668,64 0,85.668 0,112L0,464C0,490.332 21.668,512 48,512L400,512C426.332,512 448,490.332 448,464L448,336C448,327.223 440.777,320 432,320ZM474.67,0L316,0C300.64,0 288,12.64 288,28L288,46.71C288.429,61.763 300.93,73.911 315.989,73.911C316.256,73.911 316.523,73.908 316.79,73.9L384,72L135.06,319.09L135,319.15C125.691,328.46 125.691,343.78 135,353.09L158.94,376.94L159,377C168.331,386.265 183.628,386.224 192.91,376.91L440,128L438.12,195.22L438.12,196C438.12,211.36 450.76,224 466.12,224L484,224C499.36,224 512,211.36 512,196L512,37.33C512,16.851 495.149,0 474.67,0Z'
         fillRule={'nonzero'}
+      />
+    </G>
+  </Svg>
+);
+export const completedSvg = ({ height, width, fill }: ISvg): ReactElement => (
+  <Svg
+    viewBox='0 0 32 32'
+    fillRule='evenodd'
+    clipRule='evenodd'
+    strokeLinejoin='round'
+    width={width}
+    height={height}
+  >
+    <Path
+      fill={fill}
+      id='check-circle'
+      d='M15.991,2.008c7.725,0 13.996,6.271 13.996,13.996c0,7.725 -6.271,13.996 -13.996,13.996c-7.725,0 -13.996,-6.271 -13.996,-13.996c0,-7.725 6.271,-13.996 13.996,-13.996Zm-2.637,17.724l9.56,-9.56c0.39,-0.391 1.024,-0.391 1.414,0c0.391,0.39 0.391,1.024 0,1.414l-10.242,10.242c-0.202,0.202 -0.468,0.299 -0.732,0.293c-0.265,0.006 -0.531,-0.091 -0.733,-0.293l-4.949,-4.949c-0.391,-0.391 -0.391,-1.024 0,-1.415c0.39,-0.39 1.024,-0.39 1.414,0l4.268,4.268Z'
+    />
+  </Svg>
+);
+export const noInternetSvg = ({ height, width, fill }: ISvg): ReactElement => (
+  <Svg width={width} height={height} viewBox='0 0 20 21' fill='none'>
+    <Rect x='0.5' y='0.833252' width='19' height='19' rx='9.5' stroke={fill} />
+    <G clip-path='url(#clip0_253_2024)'>
+      <Path
+        d='M5.83337 5.83325L14.1667 14.1666'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M8.54163 11.8751C8.93106 11.4934 9.45464 11.2795 9.99996 11.2795C10.5453 11.2795 11.0689 11.4934 11.4583 11.8751'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M5.83337 8.67497C6.34753 8.2134 6.93466 7.84029 7.57087 7.5708'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M9.44165 7.08336C11.1125 6.93336 12.8333 7.45836 14.1667 8.65003'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M12.0209 9.6875C12.3603 9.87656 12.6717 10.1122 12.9459 10.3875'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M7.08337 10.4166C7.67834 9.82161 8.43951 9.42069 9.26671 9.2666'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <Path
+        d='M10 13.3333H10.0056'
+        stroke={fill}
+        strokeWidth='1.5'
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </G>
   </Svg>

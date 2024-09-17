@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,14 @@ import RNBackgroundDownloader, {
 } from '@kesha-antonov/react-native-background-downloader';
 
 import AnimatedCustomAlert from '../components/AnimatedCustomAlert';
-import { downloadSvg, trash, stopDownload } from '../img/svgs';
+import {
+  downloadSvg,
+  trash,
+  stopDownload,
+  completedSvg,
+  stopAltDownload,
+  noInternetSvg,
+} from '../img/svgs';
 import { FONT_MULTIPLIER, IS_IOS } from '../helper';
 import type {
   Brand,
@@ -32,6 +39,7 @@ import type {
   IVideo,
 } from '../entity';
 import { derefLesson, fetchExpectedBytes, handleLessonSize } from './DownloadHelper';
+import CircularProgressBar from './CircularProgressBar';
 
 let progresses: Record<string, number> = {};
 let allDownloads: any[] = [];
@@ -51,6 +59,9 @@ interface IDownloadV2 {
     comments?: IComment[];
   };
   disabled: boolean;
+  route: string;
+  iconOnly: boolean;
+  isConnected?: boolean;
   getDownloadContent?: () => Promise<ILesson & IOverview>;
   styles: {
     touchable: StyleProp<ViewStyle>;
@@ -73,18 +84,23 @@ interface IDownloadV2 {
     };
   };
   onDone?: () => void;
+  onDelete?: () => void;
   securedPath?: string;
   publicPath?: string;
 }
 
-const DownloadV2: FunctionComponent<IDownloadV2> = props => {
+const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>((props, ref) => {
   const {
     brand,
     entity,
+    route,
+    iconOnly,
+    isConnected,
     getDownloadContent,
     styles: propStyle,
     disabled,
     onDone: onDoneProps,
+    onDelete: onDeleteProps,
   } = props;
   const iconStyle = {
     width: propStyle?.iconSize?.width || 25,
@@ -96,6 +112,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
   const progressTranslateX = useRef(new Animated.Value(0));
 
   const alert = useRef<React.ElementRef<typeof AnimatedCustomAlert>>(null);
+  const progressRef = useRef<React.ElementRef<typeof CircularProgressBar>>(null);
   const [status, setStatus] = useState('');
   publicPath =
     props?.publicPath || ReactNativeBlobUtil.fs.dirs[IS_IOS ? 'DocumentDir' : 'DownloadDir'];
@@ -103,6 +120,19 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     props?.securedPath ||
     ReactNativeBlobUtil.fs.dirs.LibraryDir ||
     ReactNativeBlobUtil.fs.dirs.DocumentDir;
+
+  useImperativeHandle(ref, () => ({
+    deleteItem: (item: any) => {
+      alert.current?.toggle(
+        'Hold your horses...',
+        offlineContent?.[item?.id]
+          ? offlineContent?.[item?.id]?.lesson
+            ? 'This will delete this lesson from\nyour device and cannot be undone.\nAre you sure about this?'
+            : 'This will delete this course from\nyour device and cannot be undone.\nAre you sure about this?'
+          : 'This lesson has been downloaded\nas part of a Course.\nAre you sure you want to delete the\nCourse and all of its Course Parts?\nYou will no longer be able to\naccess this lesson offline.'
+      );
+    },
+  }));
 
   useEffect(() => {
     resumeThis();
@@ -115,8 +145,13 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateValue = (p: number): void =>
-    progressTranslateX.current?.setValue?.(-progressWidth.current * (1 - p));
+  const updateValue = (p: number): void => {
+    if (route === 'Downloads') {
+      progressRef.current?.updateProgress(p);
+    } else {
+      progressTranslateX.current?.setValue?.(-progressWidth.current * (1 - p));
+    }
+  };
 
   const onDone = (): void => {
     onDoneProps?.();
@@ -130,8 +165,8 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
       }
       const oc = offlineContent[entity?.id];
       const largestDld = tasks.current?.find(t => t.id === oc?.fileSizes?.largestFile);
-      largestDld?.progress(({ bytesDownloaded }) =>
-        progress(bytesDownloaded, oc, largestDld as DownloadTask, undefined, updateValue)
+      largestDld?.progress(p =>
+        progress(p, oc, largestDld as DownloadTask, undefined, updateValue)
       );
     }
   };
@@ -212,9 +247,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
         tasks.current = allDownloads?.filter(ad => oc?.dlding?.some(d => d.id === ad.id));
         tasks.current.map(task => {
           if (oc?.fileSizes?.largestFile === task?.id) {
-            task?.progress(({ bytesDownloaded }) =>
-              progress(bytesDownloaded, oc, task, undefined, updateValue)
-            );
+            task?.progress(p => progress(p, oc, task, undefined, updateValue));
           }
           task?.done(() => done(oc, task.id, undefined, onDone));
         });
@@ -478,9 +511,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
             .begin(({ expectedBytes }: { expectedBytes: number; headers: any }) =>
               handleLessonSize(oc, taskId, expectedBytes)
             )
-            .progress(({ bytesDownloaded }: { bytesDownloaded: number; bytesTotal: number }) =>
-              progress(bytesDownloaded, oc, task, undefined, updateValue)
-            )
+            .progress(p => progress(p, oc, task, undefined, updateValue))
             .done(() => {
               done(oc, taskId, undefined, onDone);
               res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
@@ -513,6 +544,7 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     });
 
   const onDelete = (): void => {
+    onDeleteProps?.();
     deleteLesson(entity?.id, tasks, setStatus);
     alert.current?.toggle();
   };
@@ -536,18 +568,40 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
     <>
       <TouchableOpacity
         style={[
+          { alignItems: 'center', justifyContent: 'center', opacity: disabled ? 0.5 : 1 },
           propStyle?.touchable,
-          { alignItems: 'center', justifyContent: 'space-around', opacity: disabled ? 0.5 : 1 },
         ]}
         disabled={disabled}
         onPress={onDownloadBtnPress}
       >
         {status === 'Download' ? (
-          downloadSvg(iconStyle)
+          <>{downloadSvg(iconStyle)}</>
         ) : status === 'Downloaded' ? (
-          trash(iconStyle)
+          <>
+            {route === 'Downloads' && iconOnly
+              ? completedSvg({ ...iconStyle, fill: '#16A34A' })
+              : trash(iconStyle)}
+          </>
         ) : status === 'Downloading' ? (
-          stopDownload(iconStyle)
+          <>
+            {route === 'Downloads' ? (
+              iconOnly ? (
+                !!isConnected ? (
+                  <CircularProgressBar
+                    size={20}
+                    color={propStyle?.iconDownloadColor || 'black'}
+                    ref={progressRef}
+                  />
+                ) : (
+                  noInternetSvg({ ...iconStyle, fill: '#B91C1C' })
+                )
+              ) : (
+                stopAltDownload(iconStyle)
+              )
+            ) : (
+              stopDownload(iconStyle)
+            )}
+          </>
         ) : (
           <ActivityIndicator
             size={'small'}
@@ -555,47 +609,62 @@ const DownloadV2: FunctionComponent<IDownloadV2> = props => {
             color={propStyle?.activityIndicatorColor || 'black'}
           />
         )}
-        <View
-          style={propStyle?.textStatus ? {} : { width: iconStyle.width }}
-          onLayout={({
-            nativeEvent: {
-              layout: { width },
-            },
-          }) => {
-            progressWidth.current = width;
-            progressTranslateX.current.setValue(-width);
-          }}
-        >
-          {propStyle?.textStatus && (
-            <Text maxFontSizeMultiplier={FONT_MULTIPLIER} style={propStyle?.textStatus}>
-              {status}
-            </Text>
-          )}
+        {!iconOnly && (
           <View
-            style={{
-              overflow: 'hidden',
-              backgroundColor: 'grey',
-              height: status === 'Downloading' ? 3 : 0,
+            style={propStyle?.textStatus ? {} : { width: iconStyle.width }}
+            onLayout={({
+              nativeEvent: {
+                layout: { width },
+              },
+            }) => {
+              progressWidth.current = width;
+              progressTranslateX.current.setValue(-width);
             }}
           >
-            <Animated.View
-              style={{
-                flex: 1,
-                transform: [{ translateX: progressTranslateX.current }],
-                backgroundColor: propStyle?.animatedProgressBackground || 'black',
-              }}
-            />
+            {propStyle?.textStatus && (
+              <Text maxFontSizeMultiplier={FONT_MULTIPLIER} style={propStyle?.textStatus}>
+                {route === 'Downloads'
+                  ? status === 'Downloading'
+                    ? 'Stop'
+                    : status === 'Downloaded' && 'Delete'
+                  : status}
+              </Text>
+            )}
+            {route !== 'Downloads' && (
+              <View
+                style={{
+                  overflow: 'hidden',
+                  backgroundColor: 'grey',
+                  height: status === 'Downloading' ? 3 : 0,
+                }}
+              >
+                <Animated.View
+                  style={{
+                    flex: 1,
+                    transform: [{ translateX: progressTranslateX.current }],
+                    backgroundColor: propStyle?.animatedProgressBackground || 'black',
+                  }}
+                />
+              </View>
+            )}
           </View>
-        </View>
+        )}
       </TouchableOpacity>
       <AnimatedCustomAlert onDelete={onDelete} ref={alert} styles={propStyle.alert} />
     </>
   );
-};
+});
 
 const addDownloadEventListener = (
   callback: (
-    arg0: { val: any[]; allDownloads: DownloadTask[]; largestDownloads: DownloadTask[] } | any
+    arg0:
+      | {
+          val: any[];
+          allDownloads: DownloadTask[];
+          largestDownloads: DownloadTask[];
+          currentDownloads: IOfflineContent;
+        }
+      | any
   ) => void
 ): {
   remove: () => void;
@@ -616,6 +685,7 @@ const addDownloadEventListener = (
             largestDownloads: allDownloads?.filter(
               ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
+            currentDownloads: offlineContent,
           }
     );
   };
@@ -662,16 +732,18 @@ const resumeAll = async (
         };
         const resume = (): void => {
           task
-            ?.begin((expectedBytes: number) =>
+            ?.begin(({ expectedBytes }: { expectedBytes: number; headers: any }) =>
               handleLessonSize(oc, task?.id as string, expectedBytes)
             )
-            ?.progress((p: number) => progress(p, oc, task as DownloadTask, dlding))
+            ?.progress((p: { bytesDownloaded: number; bytesTotal: number }) =>
+              progress(p, oc, task as DownloadTask, dlding)
+            )
             ?.done(() => done(oc, task?.id as string, dlding))
             ?.error((e: string | string[]) => {
-              if (e.includes('No such file or directory')) {
+              if (e?.includes?.('No such file or directory')) {
                 ReactNativeBlobUtil.fs.unlink(dlding.destination).then(restart).catch(restart);
               }
-              if (e.includes('No space left on device')) {
+              if (e?.includes?.('No space left on device')) {
                 deleteLesson(oc.id);
                 const title = (oc?.overview || oc.lesson)?.title;
                 Alert.alert(
@@ -693,19 +765,20 @@ const resumeAll = async (
 };
 
 const progress = (
-  p: number,
+  p: { bytesDownloaded: number; bytesTotal: number },
   oc: IOfflineContent,
   task: DownloadTask,
   dlding?: IDownloading,
   updateValue?: (p: number) => void
 ): void => {
+  const pVal = p?.bytesDownloaded / p?.bytesTotal;
   fetchExpectedBytes(oc, dlding);
   if (oc?.fileSizes?.largestFile === task?.id && task?.state !== 'STOPPED') {
     DeviceEventEmitter.emit('dldProgress', {
-      val: p,
+      val: pVal,
       id: task.id,
     });
-    updateValue?.(p);
+    updateValue?.(pVal);
   }
 };
 
