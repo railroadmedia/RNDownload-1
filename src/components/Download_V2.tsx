@@ -282,8 +282,8 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         .concat(downloadResource(lessons))
         .concat(downloadMp3s(lessons))
         .concat(downloadAssignment(lessons))
-        .concat(downloadRelatedThumb(lessons))
-        .concat(downloadCommentUserProfile(lessons));
+        // .concat(downloadRelatedThumb(lessons))
+        // .concat(downloadCommentUserProfile(lessons));
       Promise.all(promises).then(() => {
         setStatus('Downloaded');
         setOfflineContent();
@@ -311,23 +311,25 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           new Promise<void>(res => {
             const url = value;
             const id = `${mp3Id}.mp3`;
-            downloadItem(id, url as string, securedPath).then(v => {
-              value = v;
-              if (lesson) {
-                (lesson[key as keyof ILesson] as ILesson[keyof ILesson]) = v;
-              }
-              res();
-            });
+            if (url){
+              downloadItem(id, url as string, securedPath).then(v => {
+                value = v;
+                if (lesson) {
+                  (lesson[key as keyof ILesson] as ILesson[keyof ILesson]) = v;
+                }
+                res();
+              });
+            }
           })
       );
 
   const downloadVideo = (lesson: ILesson): Promise<void> | undefined => {
-    if (lesson?.video_playback_endpoints?.length > 0) {
+    if (lesson?.video?.video_playback_endpoints?.length > 0) {
       return new Promise<void>(res => {
-        const url = lesson.video_playback_endpoints[0].file;
-        const id = `${lesson.id}Video${lesson.video_playback_endpoints[0].height}.mp4`;
+        const url = lesson.video?.video_playback_endpoints[0].file;
+        const id = `${lesson.id}Video${lesson.video?.video_playback_endpoints[0].height}.mp4`;
         downloadItem(id, url, securedPath).then(file => {
-          lesson.video_playback_endpoints[0].file = file;
+          lesson.video.video_playback_endpoints[0].file = file;
           res();
         });
       });
@@ -340,16 +342,17 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       l =>
         l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
     );
+
     assignments?.map(
       a =>
         new Promise<void>(res => {
-          const extension = a.value.split('.').pop();
-          const url = a.value;
-          const id = `${a.id}.${extension}`;
+          const extension = a.split('.').pop();
+          const url = a;
+          const id = `${a.substring(a.lastIndexOf('-') + 1, a.lastIndexOf('.'))}.${extension}`;
           downloadItem(id, url, securedPath).then(value => {
-            a.value = value;
+            a.sheet_music_image_url = value;
             ReactNativeBlobUtil.fs
-              .readFile(a.value, 'utf8')
+              .readFile(a.sheet_music_image_url, 'utf8')
               .then(result => {
                 const vb = result?.split('viewBox="')?.[1]?.split('"')?.[0].split(' ');
                 if (vb[2] && vb[3]) {
@@ -458,7 +461,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           new Promise<void>(res => {
             const extension = r?.extension || r?.resource_url.split('.').pop();
             const url = r.resource_url;
-            const id = `${r.resource_id}.${extension}`;
+            const id = `${r.resource_url?.substring(r.resource_url.lastIndexOf('-') + 1, r.resource_url.lastIndexOf('.'))}.${extension}`;
 
             downloadItem(
               id,
@@ -812,7 +815,7 @@ const manageOfflinePath = (oc: IOfflineContent): void => {
   const sp = `${IS_IOS ? '' : 'file://'}${securedPath}`;
   const manage = (lesson: ILesson): void => {
     if (of.find(o => o.includes(`${lesson.id}Video`))) {
-      lesson.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
+      lesson.video.video_playback_endpoints[0].file = `${sp}/${of.find(o =>
         o.includes(`${lesson.id}Video`)
       )}`;
     }
@@ -833,13 +836,13 @@ const manageOfflinePath = (oc: IOfflineContent): void => {
       });
     });
 
-    lesson.comments?.map(c => {
-      if (of.find(o => o.includes(String(c.user_id)))) {
-        c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
-          o.includes(String(c.user_id))
-        )}`;
-      }
-    });
+    // lesson.comments?.map(c => {
+    //   if (of.find(o => o.includes(String(c.user_id)))) {
+    //     c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
+    //       o.includes(String(c.user_id))
+    //     )}`;
+    //   }
+    // });
   };
   if (oc.lesson) {
     manage(oc.lesson);
@@ -885,29 +888,26 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                   ...l,
                   assignments: l?.assignments?.map(a => ({
                     ...a,
-                    sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
-                      ...sheet,
-                      value: sheet.value?.replace(oldUuid, newUuid),
-                    })),
+                    sheet_music_image_url: a.sheet_music_image_url
                   })),
-                  comments: l?.comments?.map(c => ({
-                    ...c,
-                    user: {
-                      ...c.user,
-                      'fields.profile_picture_image_url': c.user[
-                        'fields.profile_picture_image_url'
-                      ]?.replace(oldUuid, newUuid),
-                    },
-                  })),
-                  related_lessons: l?.related_lessons?.map(rl => ({
-                    ...rl,
-                    thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                  })),
+                  // comments: l?.comments?.map(c => ({
+                  //   ...c,
+                  //   user: {
+                  //     ...c.user,
+                  //     'fields.profile_picture_image_url': c.user[
+                  //       'fields.profile_picture_image_url'
+                  //     ]?.replace(oldUuid, newUuid),
+                  //   },
+                  // })),
+                  // related_lessons: l?.related_lessons?.map(rl => ({
+                  //   ...rl,
+                  //   thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
+                  // })),
                   thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                  video_playback_endpoints: l?.video_playback_endpoints?.map(vpe => ({
+                  video: { video_playback_endpoints: l?.video?.video_playback_endpoints?.map(vpe => ({
                     ...vpe,
                     file: vpe.file?.replace(oldUuid, newUuid),
-                  })),
+                  }))},
                 })),
                 thumbnail_url: oc.overview?.thumbnail_url?.replace(oldUuid, newUuid),
               },
@@ -915,29 +915,30 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                 ...oc.lesson,
                 assignments: oc.lesson?.assignments?.map(a => ({
                   ...a,
-                  sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
-                    ...sheet,
-                    value: sheet.value?.replace(oldUuid, newUuid),
-                  })),
+                  sheet_music_image_url: a.sheet_music_image_url,
                 })),
-                comments: oc.lesson?.comments?.map(c => ({
-                  ...c,
-                  user: {
-                    ...c.user,
-                    'fields.profile_picture_image_url': c.user[
-                      'fields.profile_picture_image_url'
-                    ]?.replace(oldUuid, newUuid),
-                  },
-                })),
-                related_lessons: oc.lesson?.related_lessons?.map(rl => ({
-                  ...rl,
-                  thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                })),
+                // comments: oc.lesson?.comments?.map(c => ({
+                //   ...c,
+                //   user: {
+                //     ...c.user,
+                //     'fields.profile_picture_image_url': c.user[
+                //       'fields.profile_picture_image_url'
+                //     ]?.replace(oldUuid, newUuid),
+                //   },
+                // })),
+                // related_lessons: oc.lesson?.related_lessons?.map(rl => ({
+                //   ...rl,
+                //   thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
+                // })),
                 thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
-                video_playback_endpoints: oc.lesson?.video_playback_endpoints?.map(vpe => ({
-                  ...vpe,
-                  file: vpe.file?.replace(oldUuid, newUuid),
-                })),
+                video: { video_playback_endpoints: oc.lesson?.video?.video_playback_endpoints?.map(vpe => {
+                  if (!vpe.file.includes('http')) {
+                    return {
+                      ...vpe,
+                      file: vpe.file?.replace(oldUuid, newUuid),
+                    }
+                  }
+                })},
               },
             },
           };
@@ -1064,17 +1065,17 @@ const handleOldOfflineFormat = (): void => {
         sizeInBytes: contentEntity.offlineSize,
         id: parseInt(k, 10),
       };
-      const commentsHandle = (comments: IComment[]): IComment[] =>
-        comments?.map(c => ({
-          ...c,
-          user: {
-            ...c.user,
-            'fields.profile_picture_image_url':
-              oc[k]?.dlded?.find(
-                dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
-              ) || '',
-          },
-        }));
+      // const commentsHandle = (comments: IComment[]): IComment[] =>
+      //   comments?.map(c => ({
+      //     ...c,
+      //     user: {
+      //       ...c.user,
+      //       'fields.profile_picture_image_url':
+      //         oc[k]?.dlded?.find(
+      //           dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
+      //         ) || '',
+      //     },
+      //   }));
       const videoHandle = (video: IVideo): IVideo[] => [
         {
           ...video,
@@ -1086,20 +1087,20 @@ const handleOldOfflineFormat = (): void => {
           ...contentEntity,
           lessons: contentEntity.lessons?.map((l: ILesson) => ({
             ...l,
-            comments: commentsHandle(l.comments),
+            // comments: commentsHandle(l.comments),
             assignments: l.assignments,
-            related_lessons: l.related_lessons,
-            video_playback_endpoints: videoHandle(l.video_playback_endpoints[0]),
+            // related_lessons: l.related_lessons,
+            video: { video_playback_endpoints: videoHandle(l.video?.video_playback_endpoints[0]) },
           })),
         };
       } else {
-        const comments = oc[k]?.lesson?.comments;
+        // const comments = oc[k]?.lesson?.comments;
         oc[k].lesson = {
           ...contentEntity,
-          comments: comments ? commentsHandle(comments) : [],
+          // comments: comments ? commentsHandle(comments) : [],
           assignments: contentEntity.assignments,
-          related_lessons: contentEntity.related_lessons,
-          video_playback_endpoints: videoHandle(contentEntity.video_playback_endpoints[0]),
+          // related_lessons: contentEntity.related_lessons,
+          video: { video_playback_endpoints: videoHandle(contentEntity.video_playback_endpoints[0])},
         };
       }
     }
@@ -1109,7 +1110,6 @@ const handleOldOfflineFormat = (): void => {
       lesson.difficulty = lesson.difficulty;
       lesson.title = lesson.title;
       lesson.description = lesson.description;
-      lesson.vimeo_video_id = lesson.vimeo_video_id;
       lesson.assignments?.map(a => {
         a.title = a.title;
         a.description = a.description;

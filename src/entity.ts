@@ -28,7 +28,11 @@ export interface ILesson {
   mobile_app_url: string;
   published_on: string;
   type: string;
-  video_playback_endpoints: IVideo[];
+  video: {
+    type: 'youtube-video' | 'vimeo-video';
+    external_id?: string;
+    video_playback_endpoints: IVideo[];
+  };
   resources: IResource[];
   assignments: IAssignment[];
   comments: IComment[];
