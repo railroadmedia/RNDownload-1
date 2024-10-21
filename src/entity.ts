@@ -36,6 +36,7 @@ export interface ILesson {
   resources: IResource[];
   assignments: IAssignment[];
   comments: IComment[];
+  chapters: IChapter[];
   brand: Brand;
   related_lessons?: ILesson[];
   instructor?: ICoach[];
@@ -133,4 +134,10 @@ export interface IOfflineContent {
   sizeInBytes: number;
   lesson?: ILesson;
   overview?: IOverview;
+}
+
+export interface IChapter {
+  chapter_timecode: number;
+  chapter_description: string;
+  chapter_thumbnail_url: string;
 }

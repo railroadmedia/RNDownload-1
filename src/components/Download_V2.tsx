@@ -30,7 +30,6 @@ import {
 import { FONT_MULTIPLIER, IS_IOS } from '../helper';
 import type {
   Brand,
-  IComment,
   IDownloading,
   ILesson,
   IOfflineContent,
@@ -56,7 +55,6 @@ interface IDownloadV2 {
   brand: Brand;
   entity: {
     id: number;
-    comments?: IComment[];
   };
   disabled: boolean;
   route: string;
@@ -174,7 +172,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
   const deref = async (): Promise<true | void> => {
     const content = await getDownloadContent?.();
     const lesson = content?.lessons?.length ? undefined : content;
-    if (lesson?.youtube_video_id || content?.lessons?.find?.(l => l.youtube_video_id)) {
+    if (lesson?.youtube_video_id || content?.lessons?.find?.(l => l.video.type === 'youtube-video')) {
       setStatus('Download');
       return Alert.alert(
         'Copyrighted material',
@@ -186,7 +184,6 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       );
     }
     const overview = content?.lessons?.length ? content : undefined;
-    const { comments } = entity;
     if (!lesson && !overview) {
       setStatus('Download');
       return Alert.alert(
@@ -206,14 +203,14 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     };
 
     if (lesson) {
-      offlineContent[entity?.id].lesson = derefLesson(lesson, comments, brand);
+      offlineContent[entity?.id].lesson = derefLesson(lesson, brand);
     }
 
     if (overview) {
       offlineContent[entity?.id].overview = {
         ...overview,
         brand: brand,
-        lessons: overview?.lessons?.map(l => derefLesson(l, undefined, brand)),
+        lessons: overview?.lessons?.map(l => derefLesson(l, brand)),
       };
     }
     return true;
@@ -282,8 +279,8 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         .concat(downloadResource(lessons))
         .concat(downloadMp3s(lessons))
         .concat(downloadAssignment(lessons))
-        // .concat(downloadRelatedThumb(lessons))
-        // .concat(downloadCommentUserProfile(lessons));
+        .concat(downloadChapters(lessons))
+
       Promise.all(promises).then(() => {
         setStatus('Downloaded');
         setOfflineContent();
@@ -392,38 +389,6 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       });
     });
 
-  const downloadRelatedThumb = (lessons: ILesson[]): Array<Promise<void>> =>
-    lessons
-      ?.reduce(
-        (a, b) => ({
-          related_lessons: a.related_lessons.concat(b?.related_lessons || []),
-        }),
-        { related_lessons: [] as ILesson[] }
-      )
-      ?.related_lessons?.map(rLesson => downloadThumb(rLesson));
-
-  const downloadCommentUserProfile = (lessons: ILesson[]): Array<Promise<void>> =>
-    lessons
-      ?.reduce((a, b) => ({ comments: a?.comments?.concat(b?.comments) }), {
-        comments: [] as IComment[],
-      })
-      .comments?.map(
-        c =>
-          new Promise<void>(res => {
-            const extension = c.user?.['fields.profile_picture_image_url']?.split('.')?.pop();
-            const url = c.user?.['fields.profile_picture_image_url'];
-            const id = `${c.user_id}.${extension}`;
-            if (id && url) {
-              downloadItem(id, url, securedPath).then(value => {
-                c.user['fields.profile_picture_image_url'] = value;
-                res();
-              });
-            } else {
-              res();
-            }
-          })
-      );
-
   const downloadResource = async (lessons: ILesson[]): Promise<void> => {
     if (!IS_IOS) {
       let granted = PermissionsAndroid.RESULTS.DENIED;
@@ -474,6 +439,27 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           })
       );
   };
+
+  const downloadChapters = async (lessons: ILesson[]): Promise<void> => {
+    let chapters: any[] = [];
+    lessons?.map(
+      l =>
+        l.chapters?.map(c => (chapters = chapters?.concat(c.chapter_thumbnail_url || [])))
+    );
+
+    chapters?.map(
+      a =>
+        new Promise<void>(res => {
+          const url = a;
+          const id = a;
+          downloadItem(id, url, securedPath).then(value => {
+            a.chapter_thumbnail_url = value;
+            
+            res();
+          });
+        })
+    );
+  }
 
   const downloadItem = (taskId: string, url: string, path: string): Promise<string> =>
     new Promise<string>(res => {
@@ -822,11 +808,6 @@ const manageOfflinePath = (oc: IOfflineContent): void => {
     if (of.find(o => o.includes(`${lesson.id}thumb`))) {
       lesson.thumbnail_url = `${sp}/${of.find(o => o.includes(`${lesson.id}thumb`))}`;
     }
-    lesson?.related_lessons?.map(rl => {
-      if (of.find(o => o.includes(`${rl.id}thumb`))) {
-        rl.thumbnail_url = `${sp}/${of.find(o => o.includes(`${rl.id}thumb`))}`;
-      }
-    });
 
     lesson?.assignments?.map((a: any): any => {
       of.filter(o => o.includes(`${a.id}`)).map((ofa, i) => {
@@ -835,14 +816,6 @@ const manageOfflinePath = (oc: IOfflineContent): void => {
         }
       });
     });
-
-    // lesson.comments?.map(c => {
-    //   if (of.find(o => o.includes(String(c.user_id)))) {
-    //     c.user['fields.profile_picture_image_url'] = `${sp}/${of.find(o =>
-    //       o.includes(String(c.user_id))
-    //     )}`;
-    //   }
-    // });
   };
   if (oc.lesson) {
     manage(oc.lesson);
@@ -890,19 +863,6 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                     ...a,
                     sheet_music_image_url: a.sheet_music_image_url
                   })),
-                  // comments: l?.comments?.map(c => ({
-                  //   ...c,
-                  //   user: {
-                  //     ...c.user,
-                  //     'fields.profile_picture_image_url': c.user[
-                  //       'fields.profile_picture_image_url'
-                  //     ]?.replace(oldUuid, newUuid),
-                  //   },
-                  // })),
-                  // related_lessons: l?.related_lessons?.map(rl => ({
-                  //   ...rl,
-                  //   thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                  // })),
                   thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
                   video: { video_playback_endpoints: l?.video?.video_playback_endpoints?.map(vpe => ({
                     ...vpe,
@@ -917,19 +877,6 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                   ...a,
                   sheet_music_image_url: a.sheet_music_image_url,
                 })),
-                // comments: oc.lesson?.comments?.map(c => ({
-                //   ...c,
-                //   user: {
-                //     ...c.user,
-                //     'fields.profile_picture_image_url': c.user[
-                //       'fields.profile_picture_image_url'
-                //     ]?.replace(oldUuid, newUuid),
-                //   },
-                // })),
-                // related_lessons: oc.lesson?.related_lessons?.map(rl => ({
-                //   ...rl,
-                //   thumbnail_url: rl.thumbnail_url?.replace(oldUuid, newUuid),
-                // })),
                 thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
                 video: { video_playback_endpoints: oc.lesson?.video?.video_playback_endpoints?.map(vpe => {
                   if (!vpe.file.includes('http')) {
@@ -1065,17 +1012,6 @@ const handleOldOfflineFormat = (): void => {
         sizeInBytes: contentEntity.offlineSize,
         id: parseInt(k, 10),
       };
-      // const commentsHandle = (comments: IComment[]): IComment[] =>
-      //   comments?.map(c => ({
-      //     ...c,
-      //     user: {
-      //       ...c.user,
-      //       'fields.profile_picture_image_url':
-      //         oc[k]?.dlded?.find(
-      //           dld => dld?.includes(c?.user?.['fields.profile_picture_image_url'])
-      //         ) || '',
-      //     },
-      //   }));
       const videoHandle = (video: IVideo): IVideo[] => [
         {
           ...video,
@@ -1087,19 +1023,14 @@ const handleOldOfflineFormat = (): void => {
           ...contentEntity,
           lessons: contentEntity.lessons?.map((l: ILesson) => ({
             ...l,
-            // comments: commentsHandle(l.comments),
             assignments: l.assignments,
-            // related_lessons: l.related_lessons,
             video: { video_playback_endpoints: videoHandle(l.video?.video_playback_endpoints[0]) },
           })),
         };
       } else {
-        // const comments = oc[k]?.lesson?.comments;
         oc[k].lesson = {
           ...contentEntity,
-          // comments: comments ? commentsHandle(comments) : [],
           assignments: contentEntity.assignments,
-          // related_lessons: contentEntity.related_lessons,
           video: { video_playback_endpoints: videoHandle(contentEntity.video_playback_endpoints[0])},
         };
       }
