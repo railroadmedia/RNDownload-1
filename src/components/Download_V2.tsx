@@ -30,12 +30,12 @@ import {
 import { FONT_MULTIPLIER, IS_IOS } from '../helper';
 import type {
   Brand,
+  IChapter,
   IDownloading,
   ILesson,
   IOfflineContent,
   IOverview,
   IResource,
-  IVideo,
 } from '../entity';
 import { derefLesson, fetchExpectedBytes, handleLessonSize } from './DownloadHelper';
 import CircularProgressBar from './CircularProgressBar';
@@ -424,7 +424,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       .resources?.map(
         r =>
           new Promise<void>(res => {
-            const extension = r?.extension || r?.resource_url.split('.').pop();
+            const extension = r?.extension || r?.resource_url?.split('.').pop();
             const url = r.resource_url;
             const id = `${r.resource_url?.substring(r.resource_url.lastIndexOf('-') + 1, r.resource_url.lastIndexOf('.'))}.${extension}`;
 
@@ -441,23 +441,30 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
   };
 
   const downloadChapters = async (lessons: ILesson[]): Promise<void> => {
-    let chapters: any[] = [];
-    lessons?.map(
-      l =>
-        l.chapters?.map(c => (chapters = chapters?.concat(c.chapter_thumbnail_url || [])))
-    );
-
-    chapters?.map(
-      a =>
-        new Promise<void>(res => {
-          const url = a;
-          const id = a;
+    lessons
+      ?.map(l => ({
+        ...l,
+        chapters: l?.chapters?.map(c => {
+          c.id = c.chapter_thumbnail_url?.substring(c.chapter_thumbnail_url?.lastIndexOf("/")+1, c.chapter_thumbnail_url?.lastIndexOf("."))
+          return c;
+        }),
+      }))
+      .reduce((a, b) => ({ chapters: a?.chapters?.concat(b?.chapters) }), {
+        chapters: [] as IChapter[],
+      })
+      .chapters?.map(
+      c =>{
+        if (c){
+        return new Promise<void>(res => {
+          const url = c.chapter_thumbnail_url;
+          const id = c.id || c.chapter_description;
           downloadItem(id, url, securedPath).then(value => {
-            a.chapter_thumbnail_url = value;
-            
+            c.chapter_thumbnail_url = value;
             res();
           });
         })
+      }
+      }
     );
   }
 
@@ -698,7 +705,6 @@ const resumeAll = async (
 
   offlineContent = await getOfflineContent();
 
-  handleOldOfflineFormat();
   allDownloads = await RNBackgroundDownloader.checkForExistingDownloads();
 
   Object.values(offlineContent).map(oc => {
@@ -996,78 +1002,6 @@ const deleteLesson = async (
     });
   }
   setOfflineContent();
-};
-
-const handleOldOfflineFormat = (): void => {
-  const oc = offlineContent;
-  Object.keys(oc).map(k => {
-    const contentEntity = oc[k]?.entity;
-    if (contentEntity) {
-      oc[k] = {
-        dlded: contentEntity.dldedFiles.map((df: string) =>
-          publicOfflineFiles.includes(df) ? `${publicPath}/${df}` : `${securedPath}/${df}`
-        ),
-        dlding: [],
-        fileSizes: {},
-        sizeInBytes: contentEntity.offlineSize,
-        id: parseInt(k, 10),
-      };
-      const videoHandle = (video: IVideo): IVideo[] => [
-        {
-          ...video,
-          file: oc[k]?.dlded?.find((dld: string | string[]) => dld?.includes(video?.file)) || '',
-        },
-      ];
-      if (contentEntity?.lessons) {
-        oc[k].overview = {
-          ...contentEntity,
-          lessons: contentEntity.lessons?.map((l: ILesson) => ({
-            ...l,
-            assignments: l.assignments,
-            video: { video_playback_endpoints: videoHandle(l.video?.video_playback_endpoints[0]) },
-          })),
-        };
-      } else {
-        oc[k].lesson = {
-          ...contentEntity,
-          assignments: contentEntity.assignments,
-          video: { video_playback_endpoints: videoHandle(contentEntity.video_playback_endpoints[0])},
-        };
-      }
-    }
-
-    const handleLesson = (lesson: ILesson): void => {
-      lesson.style = lesson.style;
-      lesson.difficulty = lesson.difficulty;
-      lesson.title = lesson.title;
-      lesson.description = lesson.description;
-      lesson.assignments?.map(a => {
-        a.title = a.title;
-        a.description = a.description;
-        a.sheet_music_image_url = a.sheet_music_image_url;
-      });
-      if (!!lesson.instructor) {
-        lesson.instructor = lesson.instructor?.map(i => ({
-          id: i.id,
-          name: i.name,
-          biography: i.biography,
-          head_shot_picture_url: i.head_shot_picture_url,
-        }));
-      }
-    };
-    if (oc[k]?.lesson) {
-      handleLesson(oc[k]?.lesson ?? ({} as ILesson));
-    }
-    if (oc[k]?.overview) {
-      const overview = oc[k]?.overview;
-      oc[k].overview!.description = overview?.description || '';
-      oc[k].overview!.thumbnail_url = overview?.thumbnail_url || '';
-      oc[k].overview!.title = oc[k]?.overview?.title || '';
-      oc[k].overview!.style = oc[k]?.overview?.style || '';
-      oc[k].overview!.difficulty = oc[k]?.overview?.difficulty;
-      oc[k]?.overview?.lessons?.map(l => handleLesson(l));
-    }
-  });
 };
 
 export default DownloadV2;

@@ -60,13 +60,15 @@ export interface IAssignment {
   description: string;
   soundslice_slug?: string;
   timecode?: string;
-  sheet_music_image_url?: Array<{
-    content_id: number;
-    id: number;
-    key: string;
-    value: string;
-    whRatio: number;
-  }>;
+  sheet_music_image_url?: string[] | IMusicSheet[];
+}
+
+export interface IMusicSheet {
+  content_id?: number;
+  id?: number;
+  key?: string;
+  value: string;
+  whRatio?: number;
 }
 
 export interface ICoach {
@@ -137,6 +139,7 @@ export interface IOfflineContent {
 }
 
 export interface IChapter {
+  id: string;
   chapter_timecode: number;
   chapter_description: string;
   chapter_thumbnail_url: string;
