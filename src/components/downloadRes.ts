@@ -40,7 +40,7 @@ export const downloadRes = (
     const dirs = ReactNativeBlobUtil.fs.dirs;
     const resExtension = resource?.resource_url?.split('.').pop();
     const resourceId = resourceUrl.includes('http')
-      ? resourceUrl?.substring(resourceUrl.lastIndexOf('-') + 1, resourceUrl.lastIndexOf('.')) 
+      ? resourceUrl?.substring(resourceUrl.lastIndexOf('-') + 1, resourceUrl.lastIndexOf('.'))
       : resourceUrl?.substring(resourceUrl.lastIndexOf('/') + 1, resourceUrl.lastIndexOf('.'));
 
     const filePath = IS_IOS

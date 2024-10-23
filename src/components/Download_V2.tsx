@@ -172,7 +172,10 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
   const deref = async (): Promise<true | void> => {
     const content = await getDownloadContent?.();
     const lesson = content?.lessons?.length ? undefined : content;
-    if (lesson?.youtube_video_id || content?.lessons?.find?.(l => l.video.type === 'youtube-video')) {
+    if (
+      lesson?.youtube_video_id ||
+      content?.lessons?.find?.(l => l.video.type === 'youtube-video')
+    ) {
       setStatus('Download');
       return Alert.alert(
         'Copyrighted material',
@@ -223,8 +226,8 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     | undefined => {
     const oc =
       offlineContent[entity?.id] ||
-      Object.values(offlineContent).find(
-        offc => offc?.overview?.lessons?.some(l => l.id === entity?.id)
+      Object.values(offlineContent).find(offc =>
+        offc?.overview?.lessons?.some(l => l.id === entity?.id)
       );
     if (oc) {
       if (oc?.dlding?.length) {
@@ -279,7 +282,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         .concat(downloadResource(lessons))
         .concat(downloadMp3s(lessons))
         .concat(downloadAssignment(lessons))
-        .concat(downloadChapters(lessons))
+        .concat(downloadChapters(lessons));
 
       Promise.all(promises).then(() => {
         setStatus('Downloaded');
@@ -291,16 +294,15 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
   const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
-      .map(
-        l =>
-          Object.keys(l)
-            ?.filter(k => k.includes('_click_url'))
-            ?.map(key => ({
-              lesson: l,
-              id: `${l.id}${key}`,
-              key: key as keyof ILesson,
-              value: l[key as keyof ILesson],
-            }))
+      .map(l =>
+        Object.keys(l)
+          ?.filter(k => k.includes('_click_url'))
+          ?.map(key => ({
+            lesson: l,
+            id: `${l.id}${key}`,
+            key: key as keyof ILesson,
+            value: l[key as keyof ILesson],
+          }))
       )
       .flat()
       .map(
@@ -308,7 +310,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           new Promise<void>(res => {
             const url = value;
             const id = `${mp3Id}.mp3`;
-            if (url){
+            if (url) {
               downloadItem(id, url as string, securedPath).then(v => {
                 value = v;
                 if (lesson) {
@@ -335,9 +337,8 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
   const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
-    lessons?.map(
-      l =>
-        l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
+    lessons?.map(l =>
+      l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
     );
 
     assignments?.map(
@@ -445,28 +446,29 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       ?.map(l => ({
         ...l,
         chapters: l?.chapters?.map(c => {
-          c.id = c.chapter_thumbnail_url?.substring(c.chapter_thumbnail_url?.lastIndexOf("/")+1, c.chapter_thumbnail_url?.lastIndexOf("."))
+          c.id = c.chapter_thumbnail_url?.substring(
+            c.chapter_thumbnail_url?.lastIndexOf('/') + 1,
+            c.chapter_thumbnail_url?.lastIndexOf('.')
+          );
           return c;
         }),
       }))
       .reduce((a, b) => ({ chapters: a?.chapters?.concat(b?.chapters) }), {
         chapters: [] as IChapter[],
       })
-      .chapters?.map(
-      c =>{
-        if (c){
-        return new Promise<void>(res => {
-          const url = c.chapter_thumbnail_url;
-          const id = c.id || c.chapter_description;
-          downloadItem(id, url, securedPath).then(value => {
-            c.chapter_thumbnail_url = value;
-            res();
+      .chapters?.map(c => {
+        if (c) {
+          return new Promise<void>(res => {
+            const url = c.chapter_thumbnail_url;
+            const id = c.id || c.chapter_description;
+            downloadItem(id, url, securedPath).then(value => {
+              c.chapter_thumbnail_url = value;
+              res();
+            });
           });
-        })
-      }
-      }
-    );
-  }
+        }
+      });
+  };
 
   const downloadItem = (taskId: string, url: string, path: string): Promise<string> =>
     new Promise<string>(res => {
@@ -678,8 +680,8 @@ const addDownloadEventListener = (
         : {
             val,
             allDownloads,
-            largestDownloads: allDownloads?.filter(
-              ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
+            largestDownloads: allDownloads?.filter(ed =>
+              Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
             currentDownloads: offlineContent,
           }
@@ -867,13 +869,15 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                   ...l,
                   assignments: l?.assignments?.map(a => ({
                     ...a,
-                    sheet_music_image_url: a.sheet_music_image_url
+                    sheet_music_image_url: a.sheet_music_image_url,
                   })),
                   thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
-                  video: { video_playback_endpoints: l?.video?.video_playback_endpoints?.map(vpe => ({
-                    ...vpe,
-                    file: vpe.file?.replace(oldUuid, newUuid),
-                  }))},
+                  video: {
+                    video_playback_endpoints: l?.video?.video_playback_endpoints?.map(vpe => ({
+                      ...vpe,
+                      file: vpe.file?.replace(oldUuid, newUuid),
+                    })),
+                  },
                 })),
                 thumbnail_url: oc.overview?.thumbnail_url?.replace(oldUuid, newUuid),
               },
@@ -884,14 +888,16 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                   sheet_music_image_url: a.sheet_music_image_url,
                 })),
                 thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
-                video: { video_playback_endpoints: oc.lesson?.video?.video_playback_endpoints?.map(vpe => {
-                  if (!vpe.file.includes('http')) {
-                    return {
-                      ...vpe,
-                      file: vpe.file?.replace(oldUuid, newUuid),
+                video: {
+                  video_playback_endpoints: oc.lesson?.video?.video_playback_endpoints?.map(vpe => {
+                    if (!vpe.file.includes('http')) {
+                      return {
+                        ...vpe,
+                        file: vpe.file?.replace(oldUuid, newUuid),
+                      };
                     }
-                  }
-                })},
+                  }),
+                },
               },
             },
           };
@@ -953,8 +959,8 @@ const deleteLesson = async (
   const oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc => offc?.overview?.lessons?.some(l => l.id === id));
-  const overviewContainingLesson = Object.values(offlineContent).find(
-    oContent => oContent?.overview?.lessons?.some(l => l.id === id)
+  const overviewContainingLesson = Object.values(offlineContent).find(oContent =>
+    oContent?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson && offlineContent?.[id]) {
     overviewContainingLesson.sizeInBytes += offlineContent?.[id]?.sizeInBytes || 0;
