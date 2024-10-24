@@ -60,7 +60,7 @@ export interface IAssignment {
   description: string;
   soundslice_slug?: string;
   timecode?: string;
-  sheet_music_image_url?: string[] | IMusicSheet[];
+  sheet_music_image_url?: IMusicSheet[];
 }
 
 export interface IMusicSheet {

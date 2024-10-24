@@ -880,7 +880,10 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                   ...l,
                   assignments: l?.assignments?.map(a => ({
                     ...a,
-                    sheet_music_image_url: a.sheet_music_image_url,
+                    sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
+                      ...sheet,
+                      value: sheet.value?.replace(oldUuid, newUuid),
+                    })),
                   })),
                   thumbnail_url: l.thumbnail_url?.replace(oldUuid, newUuid),
                   video: {
@@ -896,7 +899,10 @@ const getOfflineContent = (): Promise<Record<string, IOfflineContent>> =>
                 ...oc.lesson,
                 assignments: oc.lesson?.assignments?.map(a => ({
                   ...a,
-                  sheet_music_image_url: a.sheet_music_image_url,
+                  sheet_music_image_url: a.sheet_music_image_url?.map(sheet => ({
+                    ...sheet,
+                    value: sheet.value?.replace(oldUuid, newUuid),
+                  })),
                 })),
                 thumbnail_url: oc.lesson?.thumbnail_url?.replace(oldUuid, newUuid),
                 video: {
