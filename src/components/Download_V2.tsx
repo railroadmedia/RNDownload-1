@@ -340,19 +340,18 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
   const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
     lessons?.map(l =>
-      l.assignments?.map(a => (assignments = assignments?.concat(a.sheet_music_image_url || [])))
+      l.assignments?.map(a => (assignments = assignments?.concat(!!a.sheet_music_image_url ? a.sheet_music_image_url : [])))
     );
-
     assignments?.map(
       a =>
         new Promise<void>(res => {
-          const extension = a.split('.').pop();
-          const url = a;
-          const id = `${a.substring(a.lastIndexOf('-') + 1, a.lastIndexOf('.'))}.${extension}`;
+          const extension = a.value.split('.').pop();
+          const url = a.value;
+          const id = `${a.id}.${extension}`;
           downloadItem(id, url, securedPath).then(value => {
-            a.sheet_music_image_url = value;
+            a.value = value;
             ReactNativeBlobUtil.fs
-              .readFile(a.sheet_music_image_url, 'utf8')
+              .readFile(a.value, 'utf8')
               .then(result => {
                 const vb = result?.split('viewBox="')?.[1]?.split('"')?.[0].split(' ');
                 if (vb[2] && vb[3]) {
@@ -365,6 +364,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         })
     );
   };
+
 
   const downloadThumb = (lesson: ILesson | IOverview): Promise<void> =>
     new Promise<void>(async res => {
