@@ -327,10 +327,12 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       return new Promise<void>(res => {
         const url = lesson.video?.video_playback_endpoints[0].file;
         const id = `${lesson.id}Video${lesson.video?.video_playback_endpoints[0].height}.mp4`;
-        downloadItem(id, url, securedPath).then(file => {
-          lesson.video.video_playback_endpoints[0].file = file;
-          res();
-        });
+        if (url) {
+          downloadItem(id, url, securedPath).then(file => {
+            lesson.video.video_playback_endpoints[0].file = file;
+            res();
+          });
+        }
       });
     }
   };
@@ -383,11 +385,14 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
       }
       const url = thumb.value;
       const id = `${thumb.id}.${extension}`;
-      downloadItem(id, url, securedPath).then(value => {
-        thumb.value = value;
-        lesson.thumbnail_url = value;
-        res();
-      });
+
+      if (url) {
+        downloadItem(id, url, securedPath).then(value => {
+          thumb.value = value;
+          lesson.thumbnail_url = value;
+          res();
+        });
+      }
     });
 
   const downloadResource = async (lessons: ILesson[]): Promise<void> => {
@@ -429,15 +434,18 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
             const url = r.resource_url;
             const id = `${r.resource_url?.substring(r.resource_url.lastIndexOf('-') + 1, r.resource_url.lastIndexOf('.'))}.${extension}`;
 
-            downloadItem(
-              id,
-              url,
-              `${publicPath}/${r.title?.replace(/[&\/\\#,+()$~%.,^'":*?!|<>{}]/g, '') || ''}`
-            ).then(resource_url => {
-              r.resource_url = resource_url;
-              res();
-            });
+            if (url){
+              downloadItem(
+                id,
+                url,
+                `${publicPath}/${r.title?.replace(/[&\/\\#,+()$~%.,^'":*?!|<>{}]/g, '') || ''}`
+              ).then(resource_url => {
+                r.resource_url = resource_url;
+                res();
+              });
+            }
           })
+        
       );
   };
 
@@ -461,10 +469,13 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           return new Promise<void>(res => {
             const url = c.chapter_thumbnail_url;
             const id = c.id || c.chapter_description;
-            downloadItem(id, url, securedPath).then(value => {
-              c.chapter_thumbnail_url = value;
-              res();
-            });
+
+            if (url) {
+              downloadItem(id, url, securedPath).then(value => {
+                c.chapter_thumbnail_url = value;
+                res();
+              });
+            }
           });
         }
       });
@@ -479,7 +490,7 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         destination: `${path}/${taskId}`,
       });
 
-      if (url.includes('http')) {
+      if (url?.includes('http')) {
         if (allDownloads.find(t => t.id === `${taskId}`)) {
           done(oc, taskId, undefined, onDone);
           return res(`${IS_IOS ? '' : 'file://'}${path}/${taskId}`);
