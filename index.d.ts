@@ -3,7 +3,7 @@ import Download_V2, {
   resumeAll,
   offlineContent,
 } from './src/components/Download_V2';
-import DownloadResources from './src/components/DownloadResources';
+import DownloadResources, { IDownloadResources } from './src/components/DownloadResources';
 import { downloadRes } from './src/components/downloadRes';
 import { IOfflineContent, IDownloading } from './src/entity';
 
@@ -17,5 +17,6 @@ declare module 'RNDownload' {
     addDownloadEventListener,
     IOfflineContent,
     IDownloading,
+    IDownloadResources,
   };
 }

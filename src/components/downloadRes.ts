@@ -38,18 +38,25 @@ export const downloadRes = (
       resourceUrl = resource?.resource_url;
     }
     const dirs = ReactNativeBlobUtil.fs.dirs;
-    const resExtension = resource?.resource_url?.split('.').pop();
+    const resExtension = resource?.resource_url?.split('.').pop()?.toLowerCase();
+    const decodedUrl = decodeURI(resourceUrl);
+    const resourceId = decodedUrl?.substring(
+      decodedUrl.lastIndexOf('/') + 1,
+      decodedUrl.lastIndexOf('.')
+    );
 
     const filePath = IS_IOS
       ? `${dirs.DocumentDir}/${lessonTitle?.replace(
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
-        )}/${resource?.resource_id}.${resExtension}`
+        )}/${resourceId}.${resExtension ?? ''}`
       : `${dirs.DownloadDir}/${lessonTitle?.replace(
           /[&\/\\#,+()$~%.,^'":*?!|<>{}]/g,
           ''
-        )}/${resource?.resource_id}.${resExtension}`;
+        )}/${resourceId}.${resExtension ?? ''}`;
+
     const exists = await ReactNativeBlobUtil.fs.exists(filePath);
+
     if (exists) {
       resolve();
       if (!notOppeningAfterDld) {
@@ -75,11 +82,11 @@ export const downloadRes = (
 
           fetchConf
             .fetch('GET', resourceUrl)
-            .progress((received: number, total: number) => {
+            .progress((received: string, total: string) => {
               if (!notEmmitingProgress) {
                 DeviceEventEmitter.emit('dldProgress', {
                   id,
-                  val: received / total,
+                  val: parseInt(received, 10) / parseInt(total, 10),
                 });
               }
             })

@@ -23,7 +23,7 @@ const renderSvgs = (extension: string, color: string): ReactElement | undefined 
   }
 };
 
-interface IDownloadResources {
+export interface IDownloadResources {
   lessonTitle: string;
   resources: IResource[];
   isConnected: boolean | null;
