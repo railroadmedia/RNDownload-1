@@ -15,7 +15,7 @@
     "react-native-blob-util": "^0.19.11",
     "react-native-device-info": "^11.0.0",
     "react-native-linear-gradient": "^2.8.2",
-    "react-native-svg": "^13.13.0"
+    "react-native-svg": "^15.11.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
