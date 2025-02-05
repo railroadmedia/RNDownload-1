@@ -122,9 +122,7 @@ export interface IDownloading {
   destination: string;
   id: string;
   url: string;
-  headers?: {
-    map: { 'content-length': number };
-  };
+  headers?: { 'content-length': string };
 }
 
 export interface IOfflineContent {

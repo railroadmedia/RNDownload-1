@@ -226,8 +226,8 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
     | undefined => {
     const oc =
       offlineContent[entity?.id] ||
-      Object.values(offlineContent).find(offc =>
-        offc?.overview?.lessons?.some(l => l.id === entity?.id)
+      Object.values(offlineContent).find(
+        offc => offc?.overview?.lessons?.some(l => l.id === entity?.id)
       );
     if (oc) {
       if (oc?.dlding?.length) {
@@ -294,15 +294,16 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
   const downloadMp3s = (lessons: ILesson[]): Array<Promise<void>> =>
     lessons
-      .map(l =>
-        Object.keys(l)
-          ?.filter(k => k.includes('_click_url'))
-          ?.map(key => ({
-            lesson: l,
-            id: `${l.id}${key}`,
-            key: key as keyof ILesson,
-            value: l[key as keyof ILesson],
-          }))
+      .map(
+        l =>
+          Object.keys(l)
+            ?.filter(k => k.includes('_click_url'))
+            ?.map(key => ({
+              lesson: l,
+              id: `${l.id}${key}`,
+              key: key as keyof ILesson,
+              value: l[key as keyof ILesson],
+            }))
       )
       .flat()
       .map(
@@ -339,8 +340,14 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
 
   const downloadAssignment = async (lessons: ILesson[]): Promise<void> => {
     let assignments: any[] = [];
-    lessons?.map(l =>
-      l.assignments?.map(a => (assignments = assignments?.concat(!!a.sheet_music_image_url ? a.sheet_music_image_url : [])))
+    lessons?.map(
+      l =>
+        l.assignments?.map(
+          a =>
+            (assignments = assignments?.concat(
+              !!a.sheet_music_image_url ? a.sheet_music_image_url : []
+            ))
+        )
     );
     assignments?.map(
       a =>
@@ -364,7 +371,6 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
         })
     );
   };
-
 
   const downloadThumb = (lesson: ILesson | IOverview): Promise<void> =>
     new Promise<void>(async res => {
@@ -432,9 +438,12 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
           new Promise<void>(res => {
             const extension = r?.extension || r?.resource_url?.split('.').pop();
             const url = r.resource_url;
-            const id = `${r.resource_url?.substring(r.resource_url.lastIndexOf('-') + 1, r.resource_url.lastIndexOf('.'))}.${extension}`;
+            const id = `${r.resource_url?.substring(
+              r.resource_url.lastIndexOf('-') + 1,
+              r.resource_url.lastIndexOf('.')
+            )}.${extension}`;
 
-            if (url){
+            if (url) {
               downloadItem(
                 id,
                 url,
@@ -445,7 +454,6 @@ const DownloadV2 = forwardRef<{ deleteItem: (item: any) => void }, IDownloadV2>(
               });
             }
           })
-        
       );
   };
 
@@ -691,8 +699,8 @@ const addDownloadEventListener = (
         : {
             val,
             allDownloads,
-            largestDownloads: allDownloads?.filter(ed =>
-              Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
+            largestDownloads: allDownloads?.filter(
+              ed => Object.values(offlineContent)?.some(oc => oc?.fileSizes?.largestFile === ed?.id)
             ),
             currentDownloads: offlineContent,
           }
@@ -976,8 +984,8 @@ const deleteLesson = async (
   const oc =
     offlineContent[id] ||
     Object.values(offlineContent).find(offc => offc?.overview?.lessons?.some(l => l.id === id));
-  const overviewContainingLesson = Object.values(offlineContent).find(oContent =>
-    oContent?.overview?.lessons?.some(l => l.id === id)
+  const overviewContainingLesson = Object.values(offlineContent).find(
+    oContent => oContent?.overview?.lessons?.some(l => l.id === id)
   );
   if (overviewContainingLesson && offlineContent?.[id]) {
     overviewContainingLesson.sizeInBytes += offlineContent?.[id]?.sizeInBytes || 0;
